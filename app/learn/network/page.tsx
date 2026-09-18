@@ -5,7 +5,7 @@ import { chains, chainProfiles } from "../data";
 export const metadata: Metadata = {
   title: "Web3 Networks | Wallet & Cross-Chain Guides | Dust Sweeper",
   description: "Explore network-specific Web3 wallet, dust, security and cross-chain guides across supported networks.",
-  alternates: { canonical: "https://app.dustsweepertool.com/learn/network" },
+  alternates: { canonical: "https://dustsweepertool.com/learn/network" },
 };
 
 export default function NetworkIndex() {

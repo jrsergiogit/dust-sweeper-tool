@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  alternates: { canonical: "https://app.dustsweepertool.com/blog/dust-sweeper-vs-revoke-cash" },
+  alternates: { canonical: "https://dustsweepertool.com/blog/dust-sweeper-vs-revoke-cash" },
   title: "Dust Sweeper vs. Revoke.cash: Which is Better for Wallet Security?",
   description: "Compare the top Web3 security tools. Learn how to recover forgotten funds with Dust Sweeper and revoke malicious permissions safely.",
   keywords: ["dust sweeper vs revoke cash", "wallet security tool", "recover forgotten crypto", "web3 safety guide", "revoke permissions"],
@@ -20,7 +20,7 @@ export default function BlogArticle() {
             "headline": "Dust Sweeper vs. Revoke.cash: The Ultimate 2026 Comparison",
             "description": "A deep dive into Web3 wallet recovery and security tools.",
             "author": { "@type": "Organization", "name": "Dust Sweeper Team" },
-            "image": "https://app.dustsweepertool.com/og-image.png",
+            "image": "https://dustsweepertool.com/og-image.png",
           }),
         }}
       />

@@ -5,7 +5,7 @@ import { bridgePairs } from "../learn/data";
 export const metadata: Metadata = {
   title: "Crypto Bridge Routes | Dust Sweeper",
   description: "Explore cross-chain bridge route guides for supported Web3 networks.",
-  alternates: { canonical: "https://app.dustsweepertool.com/bridge" },
+  alternates: { canonical: "https://dustsweepertool.com/bridge" },
 };
 
 export default function BridgeIndex() {

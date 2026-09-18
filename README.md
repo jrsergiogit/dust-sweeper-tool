@@ -70,7 +70,7 @@ Do not commit `.env`, `.env.local`, private keys, seed phrases, wallet credentia
 
 ## Security
 
-See the application's [Security page](https://app.dustsweepertool.com/security) for information about wallet access, transactions, approvals, infrastructure, and independent verification.
+See the application's [Security page](https://dustsweepertool.com/security) for information about wallet access, transactions, approvals, infrastructure, and independent verification.
 
 For the repository's security practices and responsible disclosure guidance, see [`SECURITY.md`](SECURITY.md).
 

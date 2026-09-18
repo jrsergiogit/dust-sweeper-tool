@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  alternates: { canonical: "https://app.dustsweepertool.com/blog/is-my-wallet-hacked" },
+  alternates: { canonical: "https://dustsweepertool.com/blog/is-my-wallet-hacked" },
   title: "Is My Crypto Wallet Hacked? 5 Red Flags & Instant Fix",
   description: "Detect unauthorized access and malicious contracts. Use Dust Sweeper to review supported wallet data and security signals, while LI.FI powers supported cross-chain swap and bridge routes.",
 };

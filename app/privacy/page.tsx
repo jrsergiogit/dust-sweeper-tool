@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  alternates: { canonical: "https://app.dustsweepertool.com/privacy" },
+  alternates: { canonical: "https://dustsweepertool.com/privacy" },
   title: "Privacy Policy | Dust Sweeper Tool",
   description:
     "Learn how Dust Sweeper Tool handles public wallet data, advertising measurement, and third-party blockchain infrastructure.",

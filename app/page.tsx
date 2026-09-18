@@ -1105,9 +1105,9 @@ export default function AppPortal() {
                         <div className="flex flex-wrap gap-2">
                           <button
                             onClick={async () => {
-                              const shareText = `I found $${foundBalance} in forgotten crypto with Dust Sweeper. Check your wallet: https://app.dustsweepertool.com`;
+                              const shareText = `I found $${foundBalance} in forgotten crypto with Dust Sweeper. Check your wallet: https://dustsweepertool.com`;
                               if (navigator.share) {
-                                try { await navigator.share({ title: 'Dust Sweeper', text: shareText, url: 'https://app.dustsweepertool.com' }); } catch {}
+                                try { await navigator.share({ title: 'Dust Sweeper', text: shareText, url: 'https://dustsweepertool.com' }); } catch {}
                               } else {
                                 await navigator.clipboard.writeText(shareText);
                                 alert('Recovery link copied!');
@@ -1264,7 +1264,7 @@ export default function AppPortal() {
                           </div>
                         )}
 
-                        <div className="min-h-[590px] overflow-hidden rounded-[24px] border border-white/[0.10] bg-black shadow-[0_24px_70px_rgba(0,0,0,0.45)]">
+                        <div className="overflow-hidden rounded-[24px] border border-white/[0.10] bg-black shadow-[0_24px_70px_rgba(0,0,0,0.45)]">
                           {routeRetrying ? (
                             <div className="flex min-h-[590px] items-center justify-center p-8">
                               <div className="max-w-md text-center">

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Script from "next/script"; // Importe o Script do Next
 
 export const metadata: Metadata = {
-  alternates: { canonical: "https://app.dustsweepertool.com/faq" },
+  alternates: { canonical: "https://dustsweepertool.com/faq" },
   title: "FAQ | Dust Sweeper Tool - Web3 Wallet Toolkit",
   description: "Common questions about sweeping crypto dust, scanning for scams, and using wallet data.",
 };

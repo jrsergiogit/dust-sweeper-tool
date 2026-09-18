@@ -13,7 +13,7 @@ export async function generateMetadata({ params }: { params: Promise<{ chain: st
   const { chain } = await params;
   const name = chain.charAt(0).toUpperCase() + chain.slice(1);
   return {
-    alternates: { canonical: `https://app.dustsweepertool.com/dust-recovery/${chain}` },
+    alternates: { canonical: `https://dustsweepertool.com/dust-recovery/${chain}` },
     title: `Recover ${name} Dust & Unify Balances | Dust Sweeper`,
     description: `Explore ${name} asset recovery and LI.FI-powered cross-chain consolidation. Route availability depends on the asset, source network, destination, liquidity, and current quote.`,
   };

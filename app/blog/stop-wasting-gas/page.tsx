@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  alternates: { canonical: "https://app.dustsweepertool.com/blog/stop-wasting-gas" },
+  alternates: { canonical: "https://dustsweepertool.com/blog/stop-wasting-gas" },
   title: "Stop Wasting Gas: Consolidate Crypto Dust Into One Chain",
   description: "Tired of high fees trapping small balances? Learn how to sweep supported wallet balances and bridge assets into your favorite wallet.",
 };

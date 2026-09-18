@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  alternates: { canonical: "https://app.dustsweepertool.com/security" },
+  alternates: { canonical: "https://dustsweepertool.com/security" },
   title: "Security | Dust Sweeper Tool",
   description:
     "How Dust Sweeper Tool handles wallet access, transactions, third-party infrastructure, and independent verification.",
@@ -328,7 +328,7 @@ export default function SecurityPage() {
               </p>
               <p>
                 <span className="text-gray-300 font-medium">Application:</span>{" "}
-                app.dustsweepertool.com
+                dustsweepertool.com
               </p>
               <p>
                 <span className="text-gray-300 font-medium">Current

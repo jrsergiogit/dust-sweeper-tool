@@ -7,6 +7,6 @@ export default function robots(): MetadataRoute.Robots {
       allow: '/',
       disallow: ['/_next/', '/api/'],
     },
-    sitemap: 'https://app.dustsweepertool.com/sitemap.xml',
+    sitemap: 'https://dustsweepertool.com/sitemap.xml',
   };
 }

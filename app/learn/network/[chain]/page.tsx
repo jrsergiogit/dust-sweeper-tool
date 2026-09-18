@@ -18,8 +18,8 @@ export async function generateMetadata({ params }: { params: Promise<{ chain: st
     title: `${name} Wallet & Cross-Chain Guide | Dust Sweeper`,
     description,
     keywords: [`${name} wallet`, `${name} dust`, `${name} bridge`, `${name} crypto`, "web3 wallet security"],
-    alternates: { canonical: `https://app.dustsweepertool.com/learn/network/${chain}` },
-    openGraph: { title: `${name} Wallet & Cross-Chain Guide | Dust Sweeper`, description, url: `https://app.dustsweepertool.com/learn/network/${chain}`, type: "article" },
+    alternates: { canonical: `https://dustsweepertool.com/learn/network/${chain}` },
+    openGraph: { title: `${name} Wallet & Cross-Chain Guide | Dust Sweeper`, description, url: `https://dustsweepertool.com/learn/network/${chain}`, type: "article" },
   };
 }
 

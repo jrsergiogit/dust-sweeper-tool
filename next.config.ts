@@ -10,7 +10,7 @@ const nextConfig = {
             value: "dustsweepertool.com",
           },
         ],
-        destination: "https://app.dustsweepertool.com/:path*",
+        destination: "https://dustsweepertool.com/:path*",
         permanent: true,
       },
       {
@@ -21,7 +21,7 @@ const nextConfig = {
             value: "www.dustsweepertool.com",
           },
         ],
-        destination: "https://app.dustsweepertool.com/:path*",
+        destination: "https://dustsweepertool.com/:path*",
         permanent: true,
       },
     ];

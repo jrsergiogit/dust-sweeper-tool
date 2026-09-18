@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  alternates: { canonical: "https://app.dustsweepertool.com/blog/hidden-airdrops-2026" },
+  alternates: { canonical: "https://dustsweepertool.com/blog/hidden-airdrops-2026" },
   title: "Hidden Airdrops 2026: Find Forgotten Tokens on Supported Networks",
   description: "Discover unclaimed tokens and forgotten airdrops on supported networks. Use the scanner to review balances on the networks it currently queries.",
 };

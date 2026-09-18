@@ -11,7 +11,7 @@ export async function generateMetadata({ params }: { params: Promise<{ pair: str
   if (!route) return {};
   const title = `Bridge ${route.fromName} to ${route.toName} | Dust Sweeper`;
   const description = `Route intelligence for moving supported assets from ${route.fromName} to ${route.toName}, including network differences, asset representation, fees and security checks.`;
-  return { title, description, keywords: [`bridge ${route.fromName.toLowerCase()} to ${route.toName.toLowerCase()}`, `${route.fromName} ${route.toName} bridge`, "crypto bridge", "cross-chain"], alternates: { canonical: `https://app.dustsweepertool.com/bridge/${pair}` }, openGraph: { title, description, url: `https://app.dustsweepertool.com/bridge/${pair}`, type: "article" } };
+  return { title, description, keywords: [`bridge ${route.fromName.toLowerCase()} to ${route.toName.toLowerCase()}`, `${route.fromName} ${route.toName} bridge`, "crypto bridge", "cross-chain"], alternates: { canonical: `https://dustsweepertool.com/bridge/${pair}` }, openGraph: { title, description, url: `https://dustsweepertool.com/bridge/${pair}`, type: "article" } };
 }
 
 export default async function BridgePage({ params }: { params: Promise<{ pair: string }> }) {
@@ -23,7 +23,7 @@ export default async function BridgePage({ params }: { params: Promise<{ pair: s
   const learnRelated = topics.filter(([slug]) => /bridge|cross-chain|wallet|gas|token/i.test(slug)).slice(0, 4);
   return <div className="bg-[#0B0C10] text-white min-h-screen py-20 px-6">
     <article className="max-w-3xl mx-auto border border-white/5 bg-[#030303] p-8 md:p-16 rounded-3xl shadow-2xl">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{__html: JSON.stringify({"@context":"https://schema.org","@type":"TechArticle","headline":`Bridge ${route.fromName} to ${route.toName}`,"description":`Route intelligence and safety guide for ${route.fromName} to ${route.toName}.`,"author":{"@type":"Organization","name":"Dust Sweeper Team"},"mainEntityOfPage":{"@type":"WebPage","@id":`https://app.dustsweepertool.com/bridge/${pair}`},"image":"https://app.dustsweepertool.com/og-image.png"})}} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{__html: JSON.stringify({"@context":"https://schema.org","@type":"TechArticle","headline":`Bridge ${route.fromName} to ${route.toName}`,"description":`Route intelligence and safety guide for ${route.fromName} to ${route.toName}.`,"author":{"@type":"Organization","name":"Dust Sweeper Team"},"mainEntityOfPage":{"@type":"WebPage","@id":`https://dustsweepertool.com/bridge/${pair}`},"image":"https://dustsweepertool.com/og-image.png"})}} />
       <header className="mb-12"><div className="text-pink-500 font-bold text-xs uppercase tracking-[0.3em] mb-4">Bridge Guide • Route Intelligence</div><h1 className="text-4xl md:text-6xl font-black leading-tight mb-6">{route.fromName} → {route.toName}</h1><p className="text-xl text-gray-400 italic font-light">Network-specific checks before a cross-chain transaction.</p></header>
       <section className="space-y-8 text-gray-300 leading-relaxed text-lg">
         <p>{intel.architecture}</p>

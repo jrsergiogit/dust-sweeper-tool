@@ -40,7 +40,7 @@ const TOKEN_SLUGS = [
 ] as const
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = 'https://app.dustsweepertool.com'
+  const baseUrl = 'https://dustsweepertool.com'
   const now = new Date()
 
   const staticPages: MetadataRoute.Sitemap = [

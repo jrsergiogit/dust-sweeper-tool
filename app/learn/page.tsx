@@ -5,7 +5,7 @@ import { topics, chains } from "./data";
 export const metadata: Metadata = {
   title: "Learn | Web3 Wallet Security, Dust & Cross-Chain Guides | Dust Sweeper",
   description: "Practical guides about crypto dust, wallet security, token risk, swaps, bridges, gas fees and multi-chain asset recovery.",
-  alternates: { canonical: "https://app.dustsweepertool.com/learn" },
+  alternates: { canonical: "https://dustsweepertool.com/learn" },
 };
 
 export default function LearnPage() {

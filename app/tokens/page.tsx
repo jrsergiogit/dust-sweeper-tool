@@ -4,7 +4,7 @@ import type { Metadata } from 'next'
 export const metadata: Metadata = {
   title: 'Crypto Dust Tokens | Dust Sweeper',
   description: 'Explore guides for small and leftover balances of popular crypto tokens and learn how to evaluate, consolidate, or ignore token dust safely.',
-  alternates: { canonical: 'https://app.dustsweepertool.com/tokens' },
+  alternates: { canonical: 'https://dustsweepertool.com/tokens' },
 }
 
 const tokens = [

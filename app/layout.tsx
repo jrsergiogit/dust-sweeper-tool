@@ -5,20 +5,20 @@ import Header from "./components/Header";
 import Script from "next/script"; // Importante para as tags do Google
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://app.dustsweepertool.com"),
+  metadataBase: new URL("https://dustsweepertool.com"),
   
   alternates: {
-    canonical: 'https://app.dustsweepertool.com',
+    canonical: 'https://dustsweepertool.com',
   },
 
   title: "Dust Sweeper Tool | Web3 Wallet Security & Recovery Toolkit",
-  description: "Find wallet dust, scan token contracts, inspect wallet data, swap tokens, and bridge assets.",
+  description: "Dust Sweeper Tool is a non-custodial Web3 wallet toolkit for finding low-value crypto assets, viewing public wallet data, checking token contract risk signals, swapping tokens, and bridging assets.",
   keywords: ["crypto dust", "wallet cleaner", "scam scanner", "forgotten funds", "web3 tool", "wallet security"],
   
   openGraph: {
     title: "Dust Sweeper Tool | Web3 Toolkit",
     description: "Recover forgotten funds and scan your wallet for security risks.",
-    url: "https://app.dustsweepertool.com",
+    url: "https://dustsweepertool.com",
     siteName: "DustSweeperTool",
     images: [{ url: "/og-image.png", width: 1200, height: 630 }],
     type: "website",
@@ -41,6 +41,40 @@ export default function RootLayout({
           src="https://www.googletagmanager.com/gtag/js?id=AW-475613910"
           strategy="afterInteractive"
         />
+        <Script
+          id="dust-sweeper-structured-data"
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "WebApplication",
+              name: "Dust Sweeper Tool",
+              url: "https://dustsweepertool.com",
+              description:
+                "Non-custodial Web3 wallet toolkit for finding low-value crypto assets, viewing public wallet data, checking token contract risk signals, swapping tokens, and bridging assets.",
+              applicationCategory: "FinanceApplication",
+              operatingSystem: "Web",
+              isAccessibleForFree: true,
+              featureList: [
+                "Crypto dust discovery",
+                "Public wallet balance scanning",
+                "Token contract risk scanning",
+                "Token swaps",
+                "Cross-chain bridging",
+              ],
+              provider: {
+                "@type": "Organization",
+                name: "Dust Sweeper Tool",
+                url: "https://dustsweepertool.com",
+              },
+              sameAs: [
+                "https://www.alchemy.com/dapps/dust-sweeper-tool",
+                "https://dappradar.com/dapp/dust-sweeper-tool",
+              ],
+            }),
+          }}
+        />
+
         <Script id="google-ads-tag" strategy="afterInteractive">
           {`
             window.dataLayer = window.dataLayer || [];

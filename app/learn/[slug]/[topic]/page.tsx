@@ -19,8 +19,8 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     title: pageTitle,
     description: `${description} Learn how this applies to ${chainName} wallets and cross-chain asset management.`,
     keywords: [chainName, title.toLowerCase(), "crypto dust", "wallet security", "bridge", "web3"],
-    alternates: { canonical: `https://app.dustsweepertool.com/learn/${chain}/${topic}` },
-    openGraph: { title: pageTitle, description, url: `https://app.dustsweepertool.com/learn/${chain}/${topic}`, type: "article" },
+    alternates: { canonical: `https://dustsweepertool.com/learn/${chain}/${topic}` },
+    openGraph: { title: pageTitle, description, url: `https://dustsweepertool.com/learn/${chain}/${topic}`, type: "article" },
   };
 }
 
@@ -41,8 +41,8 @@ export default async function ChainTopicPage({ params }: { params: Promise<{ slu
         "@context":"https://schema.org","@type":"TechArticle","headline":`${title} on ${chainName}`,
         "description":`${description} Learn how this applies to ${chainName}.`,
         "author":{"@type":"Organization","name":"Dust Sweeper Team"},
-        "mainEntityOfPage":{"@type":"WebPage","@id":`https://app.dustsweepertool.com/learn/${chain}/${topic}`},
-        "image":"https://app.dustsweepertool.com/og-image.png"
+        "mainEntityOfPage":{"@type":"WebPage","@id":`https://dustsweepertool.com/learn/${chain}/${topic}`},
+        "image":"https://dustsweepertool.com/og-image.png"
       })}} />
       <article className="max-w-3xl mx-auto border border-white/5 bg-[#030303] p-8 md:p-16 rounded-3xl shadow-2xl">
         <header className="mb-12">

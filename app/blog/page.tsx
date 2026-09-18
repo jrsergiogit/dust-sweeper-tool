@@ -4,7 +4,7 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: "Web3 Wallet & Crypto Security Blog | Dust Sweeper",
   description: "Practical articles about crypto dust, wallet security, gas fees, airdrops, and multi-chain asset recovery.",
-  alternates: { canonical: "https://app.dustsweepertool.com/blog" },
+  alternates: { canonical: "https://dustsweepertool.com/blog" },
 };
 
 const posts = [

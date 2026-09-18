@@ -13,7 +13,7 @@ export async function generateMetadata({ params }: { params: Promise<{ chain: st
   const { chain } = await params;
   const name = chain.charAt(0).toUpperCase() + chain.slice(1);
   return {
-    alternates: { canonical: `https://app.dustsweepertool.com/risk-scanner/${chain}` },
+    alternates: { canonical: `https://dustsweepertool.com/risk-scanner/${chain}` },
     title: `Scan ${name} & Other Supported Networks | Dust Sweeper`,
     description: `Discover forgotten tokens on ${name} and the other supported networks. Consolidate your crypto dust into one single chain.`,
   };

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  alternates: { canonical: "https://app.dustsweepertool.com/terms" },
+  alternates: { canonical: "https://dustsweepertool.com/terms" },
   title: "Terms of Use | Dust Sweeper Tool",
   description: "Terms of Service and Service Disclaimer for Dust Sweeper Tool.",
 };

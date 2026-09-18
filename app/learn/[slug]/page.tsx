@@ -17,11 +17,11 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     title: `${title} | Dust Sweeper Learn`,
     description,
     keywords: [title.toLowerCase(), "web3 wallet", "crypto dust", "wallet security", "cross-chain"],
-    alternates: { canonical: `https://app.dustsweepertool.com/learn/${slug}` },
+    alternates: { canonical: `https://dustsweepertool.com/learn/${slug}` },
     openGraph: {
       title: `${title} | Dust Sweeper`,
       description,
-      url: `https://app.dustsweepertool.com/learn/${slug}`,
+      url: `https://dustsweepertool.com/learn/${slug}`,
       type: "article",
     },
   };
@@ -47,8 +47,8 @@ export default async function LearnArticle({ params }: { params: Promise<{ slug:
         "@context":"https://schema.org","@type":"Article","headline":title,"description":description,
         "author":{"@type":"Organization","name":"Dust Sweeper Team"},
         "publisher":{"@type":"Organization","name":"Dust Sweeper"},
-        "mainEntityOfPage":{"@type":"WebPage","@id":`https://app.dustsweepertool.com/learn/${slug}`},
-        "image":"https://app.dustsweepertool.com/og-image.png"
+        "mainEntityOfPage":{"@type":"WebPage","@id":`https://dustsweepertool.com/learn/${slug}`},
+        "image":"https://dustsweepertool.com/og-image.png"
       }) }} />
       <article className="max-w-3xl mx-auto border border-white/5 bg-[#030303] p-8 md:p-16 rounded-3xl shadow-2xl">
         <header className="mb-12">
