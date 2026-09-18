@@ -338,11 +338,10 @@ export default function SecurityPage() {
                 supported token scans.
               </p>
               <p>
-                <span className="text-gray-300 font-medium">Version
-                history:</span>{" "}
-                No public version history or changelog is currently published
-                on the application.
-              </p>
+  <span className="text-gray-300 font-medium">Source code:</span>{" "}
+  Publicly available on GitHub, allowing independent review of
+  the application structure and integrations.
+</p>
             </div>
           </section>
         </div>
