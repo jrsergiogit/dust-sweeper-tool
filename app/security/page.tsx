@@ -245,7 +245,34 @@ export default function SecurityPage() {
 
           <section>
             <h2 className="text-2xl font-semibold mb-4 text-white">
-              7. Privacy &amp; data
+              7. Source code &amp; independent verification
+            </h2>
+            <div className="text-gray-400 leading-relaxed space-y-4">
+              <p>
+                The Dust Sweeper Tool source code is publicly available on
+                GitHub. You can inspect the application code, configuration,
+                public documentation, and project structure directly.
+              </p>
+              <p>
+                Public source code does not by itself guarantee that a Web3
+                application is risk-free. It provides an additional way to
+                independently review how the application is structured and
+                which services it integrates.
+              </p>
+              <a
+                href="https://github.com/jrsergiogit/dust-sweeper-tool"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-block text-purple-400 hover:text-purple-300"
+              >
+                View the Dust Sweeper Tool source code on GitHub →
+              </a>
+            </div>
+          </section>
+
+          <section>
+            <h2 className="text-2xl font-semibold mb-4 text-white">
+              8. Privacy &amp; data
             </h2>
             <div className="text-gray-400 leading-relaxed space-y-4">
               <p>
@@ -269,7 +296,7 @@ export default function SecurityPage() {
 
           <section>
             <h2 className="text-2xl font-semibold mb-4 text-white">
-              8. Security limitations
+              9. Security limitations
             </h2>
             <div className="text-gray-400 leading-relaxed space-y-4">
               <p>
