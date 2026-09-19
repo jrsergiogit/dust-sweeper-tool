@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useMemo, useState, useEffect, useRef } from 'react';
 import dynamic from 'next/dynamic';
@@ -313,6 +313,18 @@ function isValidAddress(addr: string) {
 
 function shortAddr(addr: string) {
   return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
+}
+
+function formatUsd(value: unknown): string {
+  const n = Number(value);
+  if (!Number.isFinite(n) || n === 0) return '0.00';
+  const abs = Math.abs(n);
+  const decimals = abs >= 1 ? 2 : abs >= 0.01 ? 4 : abs >= 0.0001 ? 6 : 12;
+  const fixed = n.toFixed(decimals);
+  const trimmed = fixed.replace(/(\.\d*?[1-9])0+$|\.0+$/, '$1');
+  const [whole, fraction] = trimmed.split('.');
+  const normalizedFraction = fraction ? fraction.padEnd(2, '0') : '00';
+  return `${whole}.${normalizedFraction}`;
 }
 
 
@@ -1168,7 +1180,7 @@ export default function AppPortal() {
                                     </div>
                                   </div>
                                   <div className="flex shrink-0 items-center justify-between gap-4 sm:justify-end">
-                                    <p className="font-mono text-sm font-bold text-emerald-400">${Number(token.valueUsd).toFixed(2)}</p>
+                                    <p className="font-mono text-sm font-bold text-emerald-400">${formatUsd(token.valueUsd)}</p>
                                     <button
                                       onClick={() => selectRecoveryToken(token)}
                                       disabled={!canRoute}
@@ -1209,7 +1221,7 @@ export default function AppPortal() {
                               </div>
                             </div>
                             <div className="text-left sm:text-right">
-                              <p className="font-mono text-lg font-black text-emerald-400">${Number(selectedRecoveryToken.valueUsd).toFixed(2)}</p>
+                              <p className="font-mono text-lg font-black text-emerald-400">${formatUsd(selectedRecoveryToken.valueUsd)}</p>
                               <button onClick={() => setSelectedRecoveryToken(null)} className="mt-1 text-[9px] font-bold uppercase tracking-widest text-gray-500 transition hover:text-white">Choose another asset</button>
                             </div>
                           </div>
@@ -1234,24 +1246,28 @@ export default function AppPortal() {
                           onCompleted={handleRecoveryCompleted}
                         />
 
-                        {selectedRecoveryToken && ['unsafe','no-route','error'].includes(routePreflight.status) && (
-                          <div className={`mb-3 rounded-2xl border p-4 ${
-                            routePreflight.status === 'no-route'
-                              ? 'border-white/[0.10] bg-white/[0.03]'
-                              : 'border-amber-400/20 bg-amber-500/[0.07]'
-                          }`}>
+                        <div className="overflow-hidden rounded-[24px] border border-white/[0.10] bg-black shadow-[0_24px_70px_rgba(0,0,0,0.45)]">
+                          <LiFiWidget
+                            key={selectedRecoveryToken ? `${getTokenChainId(selectedRecoveryToken)}-${getTokenAddress(selectedRecoveryToken)}-${getTokenDisplay(selectedRecoveryToken).symbol}-${recoveryWidgetNonce}-${failedRouteTools.bridges.join(',')}-${failedRouteTools.exchanges.join(',')}` : `finder-default-${recoveryWidgetNonce}`}
+                            integrator="DustSweeper"
+                            config={finderConfig as any}
+                          />
+                        </div>
+
+                        {selectedRecoveryToken && routeRetrying && (
+                          <div className="mt-3 rounded-2xl border border-purple-400/20 bg-purple-500/[0.07] p-4">
                             <div className="flex items-start gap-3">
-                              <span className="mt-0.5 text-base">{routePreflight.status === 'no-route' ? 'ⓘ' : '⚠️'}</span>
+                              <span className="mt-0.5 text-base">↻</span>
                               <div className="min-w-0">
-                                <p className="text-[10px] font-black uppercase tracking-wider text-gray-300">{routePreflight.status === 'no-route' ? 'No route available' : 'Recovery route unavailable'}</p>
-                                <p className="mt-1 text-[11px] leading-relaxed text-gray-400">{routePreflight.message || 'LI.FI could not prepare an executable recovery route right now.'}</p>
+                                <p className="text-[10px] font-black uppercase tracking-wider text-purple-200">Searching for another route</p>
+                                <p className="mt-1 text-[11px] leading-relaxed text-gray-400">Dust Sweeper is asking LI.FI for another option. You can continue using the LI.FI window above and review any available route, token or provider.</p>
                               </div>
                             </div>
                           </div>
                         )}
 
                         {recoveryFailure && (
-                          <div className="mb-3 rounded-2xl border border-amber-400/20 bg-amber-500/[0.08] p-4">
+                          <div className="mt-3 rounded-2xl border border-amber-400/20 bg-amber-500/[0.08] p-4">
                             <div className="flex items-start gap-3">
                               <span className="mt-0.5 text-lg">⚠️</span>
                               <div className="min-w-0">
@@ -1263,31 +1279,21 @@ export default function AppPortal() {
                           </div>
                         )}
 
-                        <div className="overflow-hidden rounded-[24px] border border-white/[0.10] bg-black shadow-[0_24px_70px_rgba(0,0,0,0.45)]">
-                          {routeRetrying ? (
-                            <div className="flex min-h-[590px] items-center justify-center p-8">
-                              <div className="max-w-md text-center">
-                                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-purple-400/20 bg-purple-500/10 text-2xl">↻</div>
-                                <p className="mt-4 text-sm font-black text-white">Searching for another route</p>
-                                <p className="mt-2 text-xs leading-relaxed text-gray-500">The failed LI.FI route was blocked for this asset. Dust Sweeper is asking LI.FI for an alternative route instead of repeating the failed transaction.</p>
+                        {selectedRecoveryToken && ['unsafe','no-route','error'].includes(routePreflight.status) && (
+                          <div className={`mt-3 rounded-2xl border p-4 ${
+                            routePreflight.status === 'no-route'
+                              ? 'border-white/[0.10] bg-white/[0.03]'
+                              : 'border-amber-400/20 bg-amber-500/[0.07]'
+                          }`}>
+                            <div className="flex items-start gap-3">
+                              <span className="mt-0.5 text-base">{routePreflight.status === 'no-route' ? 'ⓘ' : '⚠️'}</span>
+                              <div className="min-w-0">
+                                <p className="text-[10px] font-black uppercase tracking-wider text-gray-300">{routePreflight.status === 'no-route' ? 'No route found during the initial check' : 'Recovery check needs attention'}</p>
+                                <p className="mt-1 text-[11px] leading-relaxed text-gray-400">{routePreflight.message || 'No route was found during the initial check. LI.FI may still find another route or provider. You can change the token, amount or available route above.'}</p>
                               </div>
                             </div>
-                          ) : routePreflight.status === 'unsafe' || routePreflight.status === 'no-route' || routePreflight.status === 'error' ? (
-                            <div className="flex min-h-[590px] items-center justify-center p-8">
-                              <div className="max-w-lg text-center">
-                                <div className={`mx-auto flex h-14 w-14 items-center justify-center rounded-2xl text-2xl ${routePreflight.status === 'no-route' ? 'border border-cyan-400/20 bg-cyan-500/10' : 'border border-amber-400/20 bg-amber-500/10'}`}>{routePreflight.status === 'no-route' ? 'ⓘ' : '⚠️'}</div>
-                                <p className="mt-4 text-sm font-black text-white">{routePreflight.status === 'no-route' ? 'No recovery route available' : routePreflight.status === 'error' ? 'We couldn’t prepare a recovery route' : 'This recovery route is unavailable'}</p>
-                                <p className="mt-2 text-xs leading-relaxed text-gray-400">{routePreflight.message || (routePreflight.status === 'no-route' ? 'LI.FI did not return an executable route for this asset right now.' : 'We could not safely prepare this recovery route right now.')}</p>
-                              </div>
-                            </div>
-                          ) : (
-                            <LiFiWidget
-                              key={selectedRecoveryToken ? `${getTokenChainId(selectedRecoveryToken)}-${getTokenAddress(selectedRecoveryToken)}-${getTokenDisplay(selectedRecoveryToken).symbol}-${recoveryWidgetNonce}-${failedRouteTools.bridges.join(',')}-${failedRouteTools.exchanges.join(',')}` : `finder-default-${recoveryWidgetNonce}`}
-                              integrator="DustSweeper"
-                              config={finderConfig as any}
-                            />
-                          )}
-                        </div>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
@@ -1396,7 +1402,7 @@ export default function AppPortal() {
                               <div key={network} className="rounded-2xl border border-white/[0.06] bg-black/20 p-4">
                                 <div className="flex items-center justify-between gap-3">
                                   <span className="truncate text-sm font-bold text-white">{network}</span>
-                                  <span className="shrink-0 text-sm font-black text-purple-300">${value.toFixed(2)}</span>
+                                  <span className="shrink-0 text-sm font-black text-purple-300">${formatUsd(value)}</span>
                                 </div>
                                 <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/[0.06]">
                                   <div className="h-full rounded-full bg-gradient-to-r from-purple-500 to-indigo-500" style={{ width: `${Math.min(100, Object.values(walletNetworkTotals).reduce((sum, total) => sum + total, 0) > 0 ? (value / Object.values(walletNetworkTotals).reduce((sum, total) => sum + total, 0)) * 100 : 0)}%` }} />
@@ -1442,7 +1448,7 @@ export default function AppPortal() {
                                 </div>
                                 <div className="shrink-0 text-right">
                                   <p className="text-sm font-bold text-gray-200">{getTokenBalanceNumber(token).toLocaleString(undefined, { maximumFractionDigits: 6 })}</p>
-                                  <p className={`mt-1 text-[11px] ${valueUsd > 0 && valueUsd <= 5 ? 'text-purple-300' : 'text-gray-500'}`}>${valueUsd.toFixed(2)}</p>
+                                  <p className={`mt-1 text-[11px] ${valueUsd > 0 && valueUsd <= 5 ? 'text-purple-300' : 'text-gray-500'}`}>${formatUsd(valueUsd)}</p>
                                 </div>
                               </div>
                             );
