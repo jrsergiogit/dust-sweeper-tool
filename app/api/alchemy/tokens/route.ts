@@ -3,6 +3,16 @@ import { NextRequest, NextResponse } from 'next/server';
 export const runtime = 'nodejs';
 const NETWORKS = ['eth-mainnet','bnb-mainnet','polygon-mainnet','arb-mainnet','base-mainnet','opt-mainnet','avax-mainnet'] as const;
 
+const NETWORK_CHAIN_IDS: Record<string, number> = {
+  'eth-mainnet': 1,
+  'bnb-mainnet': 56,
+  'polygon-mainnet': 137,
+  'arb-mainnet': 42161,
+  'base-mainnet': 8453,
+  'opt-mainnet': 10,
+  'avax-mainnet': 43114,
+};
+
 const RATE_LIMIT = 30;
 const RATE_WINDOW_MS = 60 * 60 * 1000;
 
@@ -115,11 +125,13 @@ export async function POST(request: NextRequest) {
 
     return {
       network:token?.network||'unknown',
+      chainId: NETWORK_CHAIN_IDS[token?.network] ?? null,
       tokenAddress:token?.tokenAddress||null,
       symbol:meta.symbol||(token?.tokenAddress?'TOKEN':'NATIVE'),
       name:meta.name||meta.symbol||'Unknown token',
       logo:meta.logo||null,
       decimals,
+      rawBalance: String(token?.tokenBalance || '0x0'),
       balance,
       priceUsd:Number.isFinite(priceUsd)?priceUsd:0,
       valueUsd:Number.isFinite(valueUsd)?valueUsd:0

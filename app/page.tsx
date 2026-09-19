@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React, { useMemo, useState, useEffect, useRef } from 'react';
 import dynamic from 'next/dynamic';
@@ -517,7 +517,6 @@ export default function AppPortal() {
               tradingCooldown: securityData.trading_cooldown === '1',
               selfDestruct: securityData.selfdestruct === '1',
               holderCount: securityData.holder_count || '0',
-              isSafe: securityData.is_honeypot === '0' && parseFloat(securityData.sell_tax || '0') < 0.1,
               tokenName: securityData.token_name,
               tokenSymbol: securityData.token_symbol,
               detectedChain: chainId,
@@ -568,12 +567,12 @@ export default function AppPortal() {
     const result = await fetchRealBalances(userAddressInput.trim());
     setTimeout(() => {
       if (result?.error) { setScanStep('initial'); alert(result.error === 'ERROR' ? 'Error fetching wallet data.' : result.error); return; }
-      const allAssets = Array.isArray(result.tokens)
-        ? result.tokens.filter((token: any) => Number(token?.valueUsd || 0) > 0 && hasPositiveWalletBalance(token))
-        : (Array.isArray(result.dust) ? result.dust.filter(hasPositiveWalletBalance) : []);
-      const allAssetsValue = Number(result.totalValue || allAssets.reduce((sum: number, token: any) => sum + Number(token?.valueUsd || 0), 0));
-      setFoundTokens(allAssets);
-      setFoundBalance(allAssetsValue.toFixed(2));
+      const dustAssets = Array.isArray(result.dust)
+        ? result.dust.filter((token: any) => Number(token?.valueUsd || 0) > 0 && hasPositiveWalletBalance(token))
+        : [];
+      const dustValue = Number(result.dustValue || dustAssets.reduce((sum: number, token: any) => sum + Number(token?.valueUsd || 0), 0));
+      setFoundTokens(dustAssets);
+      setFoundBalance(dustValue.toFixed(2));
       setPortfolioTokens(Array.isArray(result.tokens) ? result.tokens : []);
       setPortfolioTotal(Number(result.totalValue || 0).toFixed(2));
       setPortfolioAddress(userAddressInput.trim());
@@ -796,12 +795,12 @@ export default function AppPortal() {
     if (result?.error) { setPortfolioError(result.error === 'ERROR' ? 'Unable to load wallet data.' : result.error); return; }
     setPortfolioTokens(Array.isArray(result.tokens) ? result.tokens : []);
     setPortfolioTotal(Number(result.totalValue || 0).toFixed(2));
-    const allAssets = Array.isArray(result.tokens)
-      ? result.tokens.filter((token: any) => Number(token?.valueUsd || 0) > 0 && hasPositiveWalletBalance(token))
-      : (Array.isArray(result.dust) ? result.dust.filter(hasPositiveWalletBalance) : []);
-    const allAssetsValue = Number(result.totalValue || allAssets.reduce((sum: number, token: any) => sum + Number(token?.valueUsd || 0), 0));
-    setFoundTokens(allAssets);
-    setFoundBalance(allAssetsValue.toFixed(2));
+    const dustAssets = Array.isArray(result.dust)
+      ? result.dust.filter((token: any) => Number(token?.valueUsd || 0) > 0 && hasPositiveWalletBalance(token))
+      : [];
+    const dustValue = Number(result.dustValue || dustAssets.reduce((sum: number, token: any) => sum + Number(token?.valueUsd || 0), 0));
+    setFoundTokens(dustAssets);
+    setFoundBalance(dustValue.toFixed(2));
   };
 
   useEffect(() => {
@@ -1098,14 +1097,14 @@ export default function AppPortal() {
                           <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-emerald-400/20 bg-emerald-500/10 px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-emerald-300">
                             ✓ Scan complete
                           </div>
-                          <p className="text-xs font-bold uppercase tracking-[0.18em] text-emerald-300">Recoverable assets found</p>
+                          <p className="text-xs font-bold uppercase tracking-[0.18em] text-emerald-300">Dust found</p>
                           <p className="mt-2 text-4xl font-black tracking-tight text-white sm:text-5xl">${foundBalance}</p>
                           <p className="mt-2 font-mono text-[11px] text-gray-500">{shortAddr(portfolioAddress || userAddressInput)}</p>
                         </div>
                         <div className="flex flex-wrap gap-2">
                           <button
                             onClick={async () => {
-                              const shareText = `I found $${foundBalance} in forgotten crypto with Dust Sweeper. Check your wallet: https://dustsweepertool.com`;
+                              const shareText = `I found $${foundBalance} in crypto dust with Dust Sweeper. Check your wallet: https://dustsweepertool.com`;
                               if (navigator.share) {
                                 try { await navigator.share({ title: 'Dust Sweeper', text: shareText, url: 'https://dustsweepertool.com' }); } catch {}
                               } else {
@@ -1127,9 +1126,9 @@ export default function AppPortal() {
                     <div className="rounded-[30px] border border-white/[0.08] bg-gradient-to-b from-white/[0.035] to-white/[0.018] p-5 shadow-[0_22px_60px_rgba(0,0,0,0.26)] sm:p-6">
                       <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                         <div>
-                          <p className="text-[10px] font-bold uppercase tracking-widest text-purple-300">Step 2 · Your forgotten crypto</p>
+                          <p className="text-[10px] font-bold uppercase tracking-widest text-purple-300">Step 2 · Your crypto dust</p>
                           <h3 className="mt-1 text-lg font-black text-white">Choose an asset to recover</h3>
-                          <p className="mt-1 text-xs text-gray-500">Click Recover on the asset you want. We will carry it into the recovery step for you.</p>
+                          <p className="mt-1 text-xs text-gray-500">Select a dust asset to check for a recovery route.</p>
                         </div>
                         <span className="self-start rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-[10px] font-bold text-gray-400 sm:self-auto">{foundTokens.length} asset{foundTokens.length === 1 ? '' : 's'} found</span>
                       </div>
@@ -1532,11 +1531,11 @@ export default function AppPortal() {
                   </div>
                 ) : (
                   <div className="space-y-5 animate-in zoom-in-95 duration-500">
-                    <div className={`rounded-[32px] border p-6 shadow-2xl sm:p-8 ${safetyResult?.isSafe ? 'border-emerald-400/20 bg-gradient-to-br from-emerald-500/[0.12] to-transparent' : 'border-red-400/20 bg-gradient-to-br from-red-500/[0.12] to-transparent'}`}>
+                    <div className="rounded-[32px] border border-white/10 bg-gradient-to-br from-white/[0.06] to-transparent p-6 shadow-2xl sm:p-8">
                       <div className="mb-7 flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
                         <div>
-                          <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-gray-500">Security verdict</p>
-                          <h3 className={`mt-2 text-3xl font-black ${safetyResult?.isSafe ? 'text-emerald-400' : 'text-red-400'}`}>{safetyResult?.isSafe ? 'LOW RISK' : 'HIGH RISK'}</h3>
+                          <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-gray-500">GoPlus token security data</p>
+                          <h3 className="mt-2 text-3xl font-black text-white">SECURITY DETAILS</h3>
                           {safetyResult?.tokenName && <p className="mt-2 text-sm text-gray-400">{safetyResult.tokenName} <span className="text-white">({safetyResult.tokenSymbol})</span></p>}
                         </div>
                         <button onClick={() => setSafetyStep('initial')} className="rounded-xl border border-white/10 bg-white/[0.05] px-4 py-2.5 text-[10px] font-bold uppercase tracking-widest text-gray-400 transition hover:bg-white/10 hover:text-white">Scan another</button>
@@ -1544,19 +1543,19 @@ export default function AppPortal() {
 
                       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                         {[
-                          ['Honeypot', safetyResult?.isHoneypot ? 'YES' : 'NO', safetyResult?.isHoneypot],
-                          ['Buy Tax', `${(parseFloat(safetyResult?.buyTax || '0') * 100).toFixed(1)}%`, parseFloat(safetyResult?.buyTax || '0') >= 0.1],
-                          ['Sell Tax', `${(parseFloat(safetyResult?.sellTax || '0') * 100).toFixed(1)}%`, parseFloat(safetyResult?.sellTax || '0') >= 0.1],
-                          ['Mintable', safetyResult?.isMintable ? 'YES' : 'NO', safetyResult?.isMintable],
-                          ['Blacklist', safetyResult?.isBlacklisted ? 'YES' : 'NO', safetyResult?.isBlacklisted],
-                          ['Proxy', safetyResult?.isProxy ? 'YES' : 'NO', safetyResult?.isProxy],
-                          ['Open Source', safetyResult?.isOpenSource ? 'YES' : 'NO', !safetyResult?.isOpenSource],
-                          ['Hidden Owner', safetyResult?.hiddenOwner ? 'YES' : 'NO', safetyResult?.hiddenOwner],
-                          ['Transfer Pause', safetyResult?.transferPausable ? 'YES' : 'NO', safetyResult?.transferPausable],
-                        ].map(([label, value, risk]) => (
+                          ['Honeypot', safetyResult?.isHoneypot ? 'YES' : 'NO'],
+                          ['Buy Tax', `${(parseFloat(safetyResult?.buyTax || '0') * 100).toFixed(1)}%`],
+                          ['Sell Tax', `${(parseFloat(safetyResult?.sellTax || '0') * 100).toFixed(1)}%`],
+                          ['Mintable', safetyResult?.isMintable ? 'YES' : 'NO'],
+                          ['Blacklist', safetyResult?.isBlacklisted ? 'YES' : 'NO'],
+                          ['Proxy', safetyResult?.isProxy ? 'YES' : 'NO'],
+                          ['Open Source', safetyResult?.isOpenSource ? 'YES' : 'NO'],
+                          ['Hidden Owner', safetyResult?.hiddenOwner ? 'YES' : 'NO'],
+                          ['Transfer Pause', safetyResult?.transferPausable ? 'YES' : 'NO'],
+                        ].map(([label, value]) => (
                           <div key={String(label)} className="rounded-2xl border border-white/[0.06] bg-black/25 p-4">
                             <p className="text-[10px] font-bold uppercase tracking-wider text-gray-600">{label}</p>
-                            <p className={`mt-2 text-sm font-black ${risk ? 'text-red-400' : 'text-emerald-400'}`}>{value}</p>
+                            <p className="mt-2 text-sm font-black text-white">{value}</p>
                           </div>
                         ))}
                       </div>
@@ -1568,9 +1567,9 @@ export default function AppPortal() {
 
                       <p className="mt-5 rounded-xl border border-white/[0.05] bg-black/20 p-3 text-center text-[11px] leading-relaxed text-gray-500">Risk indicators are based on GoPlus data and do not guarantee 100% safety.</p>
 
-                      {safetyResult?.isSafe && (
+                      {safetyResult && (
                         <div className="mt-7">
-                          <div className="mb-3 flex items-center justify-between"><div><p className="text-[10px] font-bold uppercase tracking-widest text-purple-300">Trade securely</p><p className="mt-1 text-sm font-bold text-white">Swap this token with LiFi</p></div></div>
+                          <div className="mb-3 flex items-center justify-between"><div><p className="text-[10px] font-bold uppercase tracking-widest text-purple-300">Available route</p><p className="mt-1 text-sm font-bold text-white">Review the available route with LI.FI</p></div></div>
                           <div className="overflow-hidden rounded-2xl border border-white/10 bg-black shadow-2xl"><LiFiWidget integrator="DustSweeper" config={safetyBuyConfig as any} /></div>
                         </div>
                       )}

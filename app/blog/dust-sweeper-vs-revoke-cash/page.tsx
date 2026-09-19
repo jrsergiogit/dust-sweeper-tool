@@ -54,7 +54,7 @@ export default function BlogArticle() {
           <ul className="list-disc pl-6 space-y-4 text-gray-400">
             <li><strong>Multi-Chain Consolidation:</strong> Move assets from 20 networks to 1 in one click.</li>
             <li><strong>Smart Risk Scoring:</strong> Identify if a token is "Dust" or a "Malicious Honeypot".</li>
-            <li><strong>Gas Optimization:</strong> Save up to 40% on fees when cleaning multiple addresses.</li>
+            <li><strong>Gas Optimization:</strong> Compare route costs before recovering dust, with final fees shown in the transaction flow.</li>
           </ul>
 
           <h2 className="text-2xl font-bold text-white uppercase tracking-wider">Verdict: Use Both</h2>
