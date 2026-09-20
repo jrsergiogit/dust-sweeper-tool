@@ -6,7 +6,8 @@ Dust Sweeper Tool is a non-custodial multichain wallet toolkit for discovering a
 
 - Scans public wallet addresses for supported on-chain token balances.
 - Uses Alchemy as blockchain data infrastructure for Dust Finder balance discovery across 7 currently queried networks.
-- Uses LI.FI infrastructure for swap, bridge, and supported cross-chain recovery routing across 60+ blockchains.
+- Uses LI.FI infrastructure for swap, bridge, and supported recovery routing across its broader multichain ecosystem (60+ blockchains).
+- Recovery defaults to the asset's source network when a compatible same-chain route is available; cross-chain destinations remain available when supported.
 - Uses GoPlus token-security data for supported token scans.
 - Lets users review and confirm transaction actions in their own wallet.
 

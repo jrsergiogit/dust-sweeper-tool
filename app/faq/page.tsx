@@ -18,7 +18,7 @@ const faqs = [
   },
   {
     question: "How does the 'Forgotten Funds' finder work?",
-    answer: "Dust Finder currently scans 7 networks through Alchemy to identify small balances (dust) and forgotten tokens tied to your address. For assets that are found, Dust Sweeper can use LI.FI for supported swap, bridge, and cross-chain recovery routes. You choose which balances to move and approve each transaction yourself."
+    answer: "Dust Finder currently scans 7 networks through Alchemy to identify small balances (dust) and forgotten tokens tied to your address. For assets that are found, Dust Sweeper can use LI.FI for supported swap, bridge, and cross-chain recovery routes. Same-chain recovery is the default when a compatible route is available; you can review another destination in the LI.FI flow when supported. You choose which balances to move and approve each transaction yourself."
   },
   {
     question: "What does the Scam Contract Scanner do, and what are its limits?",
@@ -26,7 +26,7 @@ const faqs = [
   },
   {
     question: "Why should I use Dust Sweeper instead of a regular Exchange?",
-    answer: "Standard exchanges have high deposit minimums and don't work across multiple chains. We are optimized for 'micro-recovery' — rescuing amounts that would otherwise be stuck or forgotten across networks like Ethereum, Base, Polygon, and Arbitrum."
+    answer: "Standard exchanges have high deposit minimums and don't work across multiple chains. We are optimized for micro-recovery and wallet cleanup. Dust Finder currently discovers balances on 7 networks through Alchemy, while LI.FI provides the broader swap and bridge execution layer across its supported multichain ecosystem."
   },
   {
     question: "What are the service fees, and when are they charged?",

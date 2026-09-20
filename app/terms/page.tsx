@@ -21,7 +21,7 @@ export default function TermsPage() {
             <h2 className="text-2xl font-semibold mb-4 text-blue-500">1. Nature of the Service</h2>
             <div className="text-gray-400 space-y-4">
               <p>
-                Dust Sweeper is a decentralized finance (DeFi) interface that utilizes the <strong>LI.FI Protocol</strong> to facilitate the consolidation of small cryptocurrency balances (“dust”).
+                Dust Sweeper is a decentralized finance (DeFi) interface that uses <strong>Alchemy</strong> for wallet balance discovery on the networks currently queried by Dust Finder and <strong>LI.FI</strong> for supported swap, bridge, and recovery routing. The default recovery destination is the asset's source network when a compatible same-chain route is available; cross-chain destinations may be selected when supported.
               </p>
               <p>
                 We are a <strong>non-custodial</strong> service. This means we never have access to your private keys and we do not store your assets. All transactions are executed directly between your wallet and the smart contracts of the liquidity providers.

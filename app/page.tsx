@@ -943,7 +943,7 @@ export default function AppPortal() {
       exchanges: { deny: ['nordstern', ...failedRouteTools.exchanges] },
       bridges: failedRouteTools.bridges.length ? { deny: failedRouteTools.bridges } : undefined,
       // Default destination = the same chain where the asset was found.
-      // If no asset is selected yet, keep Polygon as the neutral widget fallback.
+      // If no asset is selected yet, keep Polygon only as the widget fallback; the recovery destination is set to the selected asset's source chain.
       toChain: chainId ? Number(chainId) : 137,
       toToken: '0x0000000000000000000000000000000000000000',
       ...(chainId ? { fromChain: Number(chainId) } : {}),

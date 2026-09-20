@@ -21,3 +21,7 @@ Dust Sweeper Tool is designed as a non-custodial application. Users should revie
 ## Responsible disclosure
 
 A public security-contact email is not currently published in this repository. Until a dedicated security contact is added, do not disclose sensitive exploit details publicly. The project should add an official security contact or GitHub private vulnerability-reporting channel before inviting external security reports.
+
+
+### Routing coverage
+Dust Finder balance discovery and LI.FI execution are separate layers. Dust Finder currently queries 7 networks through Alchemy. Swap, bridge, and supported recovery routing use LI.FI across its broader multichain ecosystem. Recovery defaults to the source network when a compatible same-chain route is available; cross-chain execution depends on the selected asset, destination, liquidity, and live route.

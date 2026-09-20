@@ -1,12 +1,12 @@
 import { Metadata } from 'next';
 
 const recoveryTexts: Record<string, string> = {
-  ethereum: "Tired of high gas fees trapping your small balances? Recover your ETH dust and bridge it to your preferred network instantly.",
-  polygon: "Convert your forgotten Polygon tokens into a single asset. Scan for leftovers and stop leaving money on the table.",
-  bsc: "Small BEP-20 balances add up. Dust Sweeper can use LI.FI-powered cross-chain routes to help consolidate supported assets when a route is available.",
-  arbitrum: "Unlock trapped liquidity on Arbitrum. Find forgotten assets and consolidate your entire Web3 portfolio in minutes.",
-  base: "Clean up supported Base assets and use LI.FI-powered cross-chain routes to consolidate them when a route is available.",
-  default: "Use Dust Sweeper for supported asset discovery and LI.FI-powered cross-chain consolidation. Route availability depends on the asset and network."
+  ethereum: "Review small Ethereum balances and compare recovery routes. The default recovery destination is the same network when a compatible route is available; cross-chain destinations can be selected when supported.",
+  polygon: "Review forgotten Polygon balances and compare supported recovery routes. Same-chain recovery is the default when a compatible route is available; cross-chain destinations can be selected when supported.",
+  bsc: "Small BEP-20 balances add up. Dust Sweeper can use LI.FI-powered same-chain or cross-chain routes to recover supported assets when a route is available.",
+  arbitrum: "Review forgotten Arbitrum assets and compare supported recovery routes. Same-chain recovery is the default when a compatible route is available.",
+  base: "Review supported Base assets and use LI.FI-powered same-chain or cross-chain routes when a route is available.",
+  default: "Use Dust Sweeper for supported asset discovery and LI.FI-powered recovery routes. Same-chain recovery is the default; cross-chain execution is available when the selected asset and route support it."
 };
 
 export async function generateMetadata({ params }: { params: Promise<{ chain: string }> }): Promise<Metadata> {
@@ -14,8 +14,8 @@ export async function generateMetadata({ params }: { params: Promise<{ chain: st
   const name = chain.charAt(0).toUpperCase() + chain.slice(1);
   return {
     alternates: { canonical: `https://dustsweepertool.com/dust-recovery/${chain}` },
-    title: `Recover ${name} Dust & Unify Balances | Dust Sweeper`,
-    description: `Explore ${name} asset recovery and LI.FI-powered cross-chain consolidation. Route availability depends on the asset, source network, destination, liquidity, and current quote.`,
+    title: `Recover ${name} Dust & Compare Routes | Dust Sweeper`,
+    description: `Explore ${name} asset recovery and LI.FI-powered same-chain or cross-chain routes. Discovery and route availability depend on the asset, source network, destination, liquidity, and current quote.`,
   };
 }
 
@@ -30,15 +30,15 @@ export default async function Page({ params }: { params: Promise<{ chain: string
       <div className="w-full max-w-4xl p-10 bg-[#030303] rounded-3xl border border-white/5 backdrop-blur-sm text-center shadow-2xl">
         
         <div className="inline-block px-4 py-1 mb-8 text-[10px] font-bold tracking-[0.3em] text-emerald-500 uppercase border border-emerald-500/20 bg-emerald-500/5 rounded-full">
-          MULTI-CHAIN CONSOLIDATION
+          DUST RECOVERY • ROUTE OPTIONS
         </div>
         
         <h1 className="mb-8 text-4xl font-extrabold tracking-tight lg:text-6xl leading-tight">
-          Unify your <span className="text-emerald-400">{displayTitle}</span> Assets
+          Recover <span className="text-emerald-400">{displayTitle}</span> Assets
         </h1>
         
         <p className="mb-12 text-lg text-gray-400 leading-relaxed max-w-2xl mx-auto">
-          {text} Dust Finder currently discovers balances across 7 networks using Alchemy. When a supported asset and route are available, LI.FI can handle the cross-chain execution and consolidation.
+          {text} Dust Finder currently discovers balances across 7 networks using Alchemy. LI.FI separately powers swap, bridge, and supported recovery routing across its broader multichain ecosystem. Same-chain recovery is the default for discovered assets when a compatible route exists; cross-chain routes remain available when supported.
         </p>
         
         <a href="/" 
@@ -48,7 +48,7 @@ export default async function Page({ params }: { params: Promise<{ chain: string
         </a>
 
         <p className="mt-8 text-[10px] text-gray-600 uppercase tracking-widest">
-          Powered by LI.FI & Alchemy for Cross-Chain Efficiency
+          Alchemy for discovery • LI.FI for swap, bridge & recovery routing
         </p>
       </div>
     </div>
