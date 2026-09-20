@@ -694,22 +694,63 @@ export default function AppPortal() {
       if (result?.error) throw new Error('Wallet refresh failed');
 
       const tokens = Array.isArray(result.tokens) ? result.tokens : [];
-      const dustAssets = Array.isArray(result.dust)
+
+      // Keep every positive-balance dust asset, including assets that do not
+      // have a reliable USD price. Some Alchemy responses can temporarily
+      // omit unpriced assets while the wallet is being refreshed, so merge the
+      // fresh result with the assets already shown before the recovery. The
+      // recovered asset itself is explicitly excluded from this merge.
+      const freshDustAssets = Array.isArray(result.dust)
         ? result.dust.filter((token: any) => hasPositiveWalletBalance(token))
         : [];
-      const dustValue = Number(
-        result.dustValue ||
-        dustAssets.reduce((sum: number, token: any) => sum + Number(token?.valueUsd || 0), 0)
+
+      const walletStillHas = (oldToken: any) => {
+        const oldKey = getRecoverySelectionKey(oldToken);
+        return tokens.some(
+          (walletToken: any) =>
+            getRecoverySelectionKey(walletToken) === oldKey &&
+            hasPositiveWalletBalance(walletToken)
+        );
+      };
+
+      const previousUnpricedAssets = foundTokens.filter((token: any) => {
+        const key = getRecoverySelectionKey(token);
+        return key !== completedTokenKey && !Number(token?.valueUsd || 0) && walletStillHas(token);
+      });
+
+      const mergedByKey = new Map<string, any>();
+      for (const token of previousUnpricedAssets) {
+        mergedByKey.set(getRecoverySelectionKey(token), token);
+      }
+      for (const token of freshDustAssets) {
+        mergedByKey.set(getRecoverySelectionKey(token), token);
+      }
+
+      const refreshedDustAssets = Array.from(mergedByKey.values()).filter((token: any) =>
+        hasPositiveWalletBalance(token)
+      );
+
+      const stillPresent = refreshedDustAssets.some(
+        (token: any) => getRecoverySelectionKey(token) === completedTokenKey
+      );
+
+      // Keep the recovered asset visible only while the indexer still reports
+      // a positive balance. Once the balance is gone, remove it from the list.
+      const dustAssets = stillPresent
+        ? refreshedDustAssets
+        : refreshedDustAssets.filter(
+            (token: any) => getRecoverySelectionKey(token) !== completedTokenKey
+          );
+
+      const dustValue = dustAssets.reduce(
+        (sum: number, token: any) => sum + Number(token?.valueUsd || 0),
+        0
       );
 
       setPortfolioTokens(tokens);
       setPortfolioTotal(Number(result.totalValue || 0).toFixed(2));
       setFoundTokens(dustAssets);
       setFoundBalance(dustValue.toFixed(2));
-
-      const stillPresent = dustAssets.some(
-        (token: any) => getRecoverySelectionKey(token) === completedTokenKey
-      );
 
       if (stillPresent && attempt < 2) {
         // Alchemy/indexers can lag behind the on-chain confirmation. Retry once
