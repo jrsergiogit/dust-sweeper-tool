@@ -491,9 +491,9 @@ export default function AppPortal() {
   const recoverySectionRef = useRef<HTMLDivElement | null>(null);
   const [recoveryFailure, setRecoveryFailure] = useState<{ tool?: string; type?: string; message?: string } | null>(null);
   const [failedRouteTools, setFailedRouteTools] = useState<{ bridges: string[]; exchanges: string[] }>({ bridges: [], exchanges: [] });
-  const [routePreflight, setRoutePreflight] = useState<{ status: 'idle' | 'checking' | 'ready' | 'needs-approval' | 'unsafe' | 'no-route' | 'error'; tool?: string; message?: string }>({ status: 'idle' });
   const [recoveryWidgetNonce, setRecoveryWidgetNonce] = useState(0);
   const [routeRetrying, setRouteRetrying] = useState(false);
+  const [recoveryRefreshing, setRecoveryRefreshing] = useState(false);
 
   // Scam Detector
   const [tokenToScan, setTokenToScan] = useState('');
@@ -580,7 +580,7 @@ export default function AppPortal() {
     setTimeout(() => {
       if (result?.error) { setScanStep('initial'); alert(result.error === 'ERROR' ? 'Error fetching wallet data.' : result.error); return; }
       const dustAssets = Array.isArray(result.dust)
-        ? result.dust.filter((token: any) => Number(token?.valueUsd || 0) > 0 && hasPositiveWalletBalance(token))
+        ? result.dust.filter((token: any) => hasPositiveWalletBalance(token))
         : [];
       const dustValue = Number(result.dustValue || dustAssets.reduce((sum: number, token: any) => sum + Number(token?.valueUsd || 0), 0));
       setFoundTokens(dustAssets);
@@ -598,7 +598,6 @@ export default function AppPortal() {
     setFoundBalance('0.00');
     setFoundTokens([]);
     setSelectedRecoveryToken(null);
-    setRoutePreflight({ status: 'idle' });
     setRecoveryWidgetNonce(0);
     setRouteRetrying(false);
   };
@@ -611,134 +610,6 @@ export default function AppPortal() {
   // Smart economics guard: Dust Sweeper still tries tiny dust. The user controls
   // how much estimated value loss is acceptable; there is no hard-coded 20% rule.
   // A route is blocked only when its estimated total loss exceeds that user limit.
-  const normalizeLiFiTool = (tool: string) => String(tool || '').trim().toLowerCase();
-
-  const preflightRecoveryRoute = async (token: any, denyTools: { bridges: string[]; exchanges: string[] }) => {
-    const chainId = getTokenChainId(token);
-    const tokenAddress = getTokenAddress(token);
-    const tokenBalance = getTokenBalanceNumber(token);
-    const decimals = getTokenDecimals(token);
-    const fromAmountHuman = formatLiFiAmount(tokenBalance, 0.995);
-    const fromAmount = decimalAmountToBaseUnits(fromAmountHuman, decimals);
-    const walletAddress = (portfolioAddress || userAddressInput || '').trim();
-
-    if (!chainId || !tokenAddress || !walletAddress || !isValidAddress(walletAddress) || fromAmount === '0') {
-      setRoutePreflight({ status: 'idle' });
-      return;
-    }
-
-    setRoutePreflight({ status: 'checking', message: 'Checking the LI.FI route before showing the recovery details…' });
-
-    try {
-      const params = new URLSearchParams({
-        fromChain: chainId,
-        toChain: '137',
-        fromToken: isNativeTokenAddress(tokenAddress) ? '0x0000000000000000000000000000000000000000' : tokenAddress,
-        toToken: '0x0000000000000000000000000000000000001010',
-        fromAddress: walletAddress,
-        toAddress: walletAddress,
-        fromAmount,
-        order: 'CHEAPEST',
-        slippage: '0.005',
-        integrator: 'DustSweeper',
-        fee: '0.01',
-        referrer: MY_WALLET,
-        maxPriceImpact: '0.15',
-        skipSimulation: 'false',
-      });
-
-      if (denyTools.bridges.length) params.set('denyBridges', denyTools.bridges.join(','));
-      if (denyTools.exchanges.length) params.set('denyExchanges', denyTools.exchanges.join(','));
-
-      const response = await fetch(`https://li.quest/v1/quote?${params.toString()}`, { cache: 'no-store' });
-      const quote = await response.json();
-      if (!response.ok) throw new Error(quote?.message || quote?.error || 'LI.FI could not return a route.');
-
-      const tool = String(quote?.toolDetails?.key || quote?.tool || '').trim();
-      const estimate = quote?.estimate || {};
-      const tx = quote?.transactionRequest;
-
-      // LI.FI itself can reject/suppress routes whose price impact is above the
-      // threshold. We also refuse obviously incomplete quotes.
-      if (!tool || !estimate?.fromAmount || !estimate?.toAmount) {
-        setRoutePreflight({ status: 'no-route', message: 'LI.FI did not return a complete executable quote for this asset.' });
-        return;
-      }
-
-      // If an ERC-20 approval is still required, gas estimation of the final
-      // swap/bridge can legitimately fail before approval. Do not call that a
-      // bad route; the Widget will request the approval first.
-      const approvalAddress = String(estimate?.approvalAddress || '').trim();
-      const native = isNativeTokenAddress(tokenAddress);
-      let allowanceKnownSufficient = native;
-
-      if (!native && approvalAddress && walletAddress && typeof window !== 'undefined') {
-        const ethereum = (window as any).ethereum;
-        if (ethereum?.request) {
-          try {
-            const owner = walletAddress.slice(2).padStart(64, '0');
-            const spender = approvalAddress.toLowerCase().replace(/^0x/, '').padStart(64, '0');
-            const data = `0xdd62ed3e${owner}${spender}`;
-            const allowanceHex = await ethereum.request({
-              method: 'eth_call',
-              params: [{ to: tokenAddress, data }, 'latest'],
-            });
-            const allowance = BigInt(allowanceHex || '0x0');
-            allowanceKnownSufficient = allowance >= BigInt(fromAmount);
-          } catch {
-            // Unknown allowance: do not falsely classify the route as broken.
-            allowanceKnownSufficient = false;
-          }
-        }
-      }
-
-      if (!tx?.to || !tx?.data) {
-        setRoutePreflight({
-          status: allowanceKnownSufficient ? 'unsafe' : 'needs-approval',
-          tool,
-          message: allowanceKnownSufficient
-            ? `LI.FI returned ${tool}, but no executable transaction data was returned.`
-            : `LI.FI found ${tool}. Gas simulation will be possible after the token approval.`
-        });
-        return;
-      }
-
-      // When allowance is already sufficient, ask the connected wallet provider
-      // to simulate the exact transaction that LI.FI returned. This is the
-      // closest client-side check to the MetaMask warning we observed.
-      if (allowanceKnownSufficient && typeof window !== 'undefined') {
-        const ethereum = (window as any).ethereum;
-        if (ethereum?.request) {
-          try {
-            const txForEstimate: any = {
-              from: walletAddress,
-              to: tx.to,
-              data: tx.data,
-              value: tx.value || '0x0',
-            };
-            if (tx.gasLimit) txForEstimate.gas = tx.gasLimit;
-            if (tx.gasPrice) txForEstimate.gasPrice = tx.gasPrice;
-            await ethereum.request({ method: 'eth_estimateGas', params: [txForEstimate] });
-          } catch (error: any) {
-            const message = String(error?.message || 'The wallet could not estimate gas for this LI.FI transaction.');
-            setRoutePreflight({ status: 'unsafe', tool, message: `LI.FI selected ${tool}, but the wallet could not simulate the final transaction. This route will not be trusted automatically.` });
-            return;
-          }
-        }
-      }
-
-      setRoutePreflight({
-        status: allowanceKnownSufficient ? 'ready' : 'needs-approval',
-        tool,
-        message: allowanceKnownSufficient
-          ? `Route checked successfully via ${tool}. LI.FI will show the full operation details before you approve it.`
-          : `Route available via ${tool}. Review the LI.FI details and approve or cancel the operation.`
-      });
-    } catch (error: any) {
-      setRoutePreflight({ status: 'error', message: String(error?.message || 'Route preflight failed.') });
-    }
-  };
-
   const handleRecoveryFailure = (failure: { tool?: string; type?: string; message?: string }) => {
     const tool = String(failure.tool || '').trim();
     const type = String(failure.type || '').toLowerCase();
@@ -752,12 +623,6 @@ export default function AppPortal() {
     if (tool) {
       const lower = tool.toLowerCase();
       setRouteRetrying(true);
-      setRoutePreflight({
-        status: 'checking',
-        tool,
-        message: `The ${tool} route failed on-chain. Searching for another LI.FI route…`,
-      });
-
       setFailedRouteTools((current) => {
         const isBridge =
           type === 'cross' ||
@@ -780,23 +645,108 @@ export default function AppPortal() {
     }
   };
 
-  const handleRecoveryCompleted = () => {
-    setRecoveryFailure(null);
-    setFailedRouteTools({ bridges: [], exchanges: [] });
-    setRouteRetrying(false);
-    setRoutePreflight({ status: 'ready', message: 'Recovery completed successfully.' });
+  const getRecoverySelectionKey = (token: any) =>
+    `${getTokenChainId(token)}:${getTokenAddress(token).toLowerCase()}`;
+
+  const isRecoveryTokenSelected = (token: any) => {
+    if (!selectedRecoveryToken) return false;
+    return getRecoverySelectionKey(selectedRecoveryToken) === getRecoverySelectionKey(token);
   };
 
-  const selectRecoveryToken = (token: any) => {
+  const toggleRecoveryToken = (token: any) => {
+    const key = getRecoverySelectionKey(token);
+    const currentKey = selectedRecoveryToken
+      ? getRecoverySelectionKey(selectedRecoveryToken)
+      : '';
+
+    if (currentKey === key) {
+      setSelectedRecoveryToken(null);
+        setRecoveryFailure(null);
+      setFailedRouteTools({ bridges: [], exchanges: [] });
+        setRecoveryWidgetNonce((n) => n + 1);
+      return;
+    }
+
+    // Keep the original one-token-at-a-time behavior: selecting a new asset
+    // immediately replaces the previous asset in the LI.FI recovery widget.
+    setSelectedRecoveryToken(token);
     setRecoveryFailure(null);
     setFailedRouteTools({ bridges: [], exchanges: [] });
-    setRouteRetrying(false);
     setRecoveryWidgetNonce((n) => n + 1);
-    setRoutePreflight({ status: 'checking', message: 'Checking the LI.FI route…' });
-    setSelectedRecoveryToken(token);
     window.setTimeout(() => {
       recoverySectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }, 60);
+  };
+
+  const refreshWalletAfterRecovery = async (completedTokenKey: string, attempt = 1): Promise<void> => {
+    const address = (portfolioAddress || userAddressInput || '').trim();
+    if (!isValidAddress(address)) return;
+
+    setRecoveryRefreshing(true);
+
+    try {
+      // Give the explorer/indexer a moment to reflect the completed transaction.
+      if (attempt === 1) {
+        await new Promise((resolve) => window.setTimeout(resolve, 3500));
+      }
+
+      const result = await fetchRealBalances(address);
+      if (result?.error) throw new Error('Wallet refresh failed');
+
+      const tokens = Array.isArray(result.tokens) ? result.tokens : [];
+      const dustAssets = Array.isArray(result.dust)
+        ? result.dust.filter((token: any) => hasPositiveWalletBalance(token))
+        : [];
+      const dustValue = Number(
+        result.dustValue ||
+        dustAssets.reduce((sum: number, token: any) => sum + Number(token?.valueUsd || 0), 0)
+      );
+
+      setPortfolioTokens(tokens);
+      setPortfolioTotal(Number(result.totalValue || 0).toFixed(2));
+      setFoundTokens(dustAssets);
+      setFoundBalance(dustValue.toFixed(2));
+
+      const stillPresent = dustAssets.some(
+        (token: any) => getRecoverySelectionKey(token) === completedTokenKey
+      );
+
+      if (stillPresent && attempt < 2) {
+        // Alchemy/indexers can lag behind the on-chain confirmation. Retry once
+        // instead of forcing the user to refresh the whole page manually.
+        await new Promise((resolve) => window.setTimeout(resolve, 4500));
+        await refreshWalletAfterRecovery(completedTokenKey, 2);
+        return;
+      }
+
+      if (!stillPresent) {
+        setSelectedRecoveryToken(null);
+        setRecoveryFailure(null);
+        setFailedRouteTools({ bridges: [], exchanges: [] });
+        setRouteRetrying(false);
+        setRecoveryWidgetNonce((n) => n + 1);
+      }
+    } catch {
+      // The blockchain transaction already completed. If the balance endpoint
+      // is temporarily unavailable, leave the UI intact rather than claiming
+      // the asset disappeared when we could not verify it.
+    } finally {
+      if (attempt === 2 || attempt === 1) setRecoveryRefreshing(false);
+    }
+  };
+
+  const handleRecoveryCompleted = () => {
+    const completedTokenKey = selectedRecoveryToken
+      ? getRecoverySelectionKey(selectedRecoveryToken)
+      : '';
+
+    setRecoveryFailure(null);
+    setFailedRouteTools({ bridges: [], exchanges: [] });
+    setRouteRetrying(false);
+
+    if (completedTokenKey) {
+      void refreshWalletAfterRecovery(completedTokenKey);
+    }
   };
 
   const loadPortfolio = async () => {
@@ -808,27 +758,15 @@ export default function AppPortal() {
     setPortfolioTokens(Array.isArray(result.tokens) ? result.tokens : []);
     setPortfolioTotal(Number(result.totalValue || 0).toFixed(2));
     const dustAssets = Array.isArray(result.dust)
-      ? result.dust.filter((token: any) => Number(token?.valueUsd || 0) > 0 && hasPositiveWalletBalance(token))
+      ? result.dust.filter((token: any) => hasPositiveWalletBalance(token))
       : [];
     const dustValue = Number(result.dustValue || dustAssets.reduce((sum: number, token: any) => sum + Number(token?.valueUsd || 0), 0));
     setFoundTokens(dustAssets);
     setFoundBalance(dustValue.toFixed(2));
   };
 
-  useEffect(() => {
-    if (!selectedRecoveryToken) {
-      setRoutePreflight({ status: 'idle' });
-      setRouteRetrying(false);
-      return;
-    }
-    const timer = window.setTimeout(async () => {
-      await preflightRecoveryRoute(selectedRecoveryToken, failedRouteTools);
-      setRouteRetrying(false);
-    }, 250);
-    return () => window.clearTimeout(timer);
-  }, [selectedRecoveryToken, failedRouteTools, portfolioAddress, userAddressInput]);
-
-  // Configuracoes LiFi (mantidas iguais, adaptadas apenas nas cores do theme se necessário)
+  // LI.FI recovery configuration. The Widget itself is responsible for route
+  // discovery; Dust Sweeper does not run an extra /quote preflight.
   const finderConfig = useMemo(() => {
     const chainId = selectedRecoveryToken ? getTokenChainId(selectedRecoveryToken) : '';
     const tokenAddress = selectedRecoveryToken ? getTokenAddress(selectedRecoveryToken) : '';
@@ -844,8 +782,9 @@ export default function AppPortal() {
       referrer: MY_WALLET,
       exchanges: { deny: ['nordstern', ...failedRouteTools.exchanges] },
       bridges: failedRouteTools.bridges.length ? { deny: failedRouteTools.bridges } : undefined,
-      toChain: 137,
-      toToken: '0x0000000000000000000000000000000000001010',
+      // Default to the token's own network; the LI.FI destination remains editable.
+      toChain: chainId ? Number(chainId) : undefined,
+      toToken: '0x0000000000000000000000000000000000000000',
       ...(chainId ? { fromChain: Number(chainId) } : {}),
       ...(tokenAddress ? { fromToken: tokenAddress } : {}),
       ...(hasTokenBalance ? { fromAmount } : {}),
@@ -853,8 +792,12 @@ export default function AppPortal() {
       // to attempt recovery of small dust amounts. LI.FI may still reject a
       // route when the network/route economics make a transaction impossible.
       useRelayerRoutes: true,
-      slippage: 0.005,
-      maxPriceImpact: 0.15,
+      slippage: 0.01,
+      sdkConfig: {
+        defaultRouteOptions: {
+          maxPriceImpact: 0.15,
+        },
+      },
       routePriority: 'RECOMMENDED' as const,
       formUpdateKey: selectedRecoveryToken
         ? `${chainId}-${tokenAddress}-${fromAmount}`
@@ -862,12 +805,12 @@ export default function AppPortal() {
       appearance: 'dark' as const,
       variant: 'compact' as const,
       theme: { palette: { primary: { main: '#8B5CF6' }, background: { paper: '#121215', default: '#09090b' } } },
-      disabledUI: ['walletHeader', 'appearance', 'poweredBy'],
+      hiddenUI: ['appearance', 'poweredBy'] as ('appearance' | 'poweredBy')[],
     };
   }, [selectedRecoveryToken, failedRouteTools]);
   const safetyBuyConfig = useMemo(() => ({ integrator: 'DustSweeper', fee: 0.01, referrer: MY_WALLET, exchanges: { deny: ['nordstern'] }, toChain: safetyResult?.detectedChain ? parseInt(safetyResult.detectedChain) : 56, toToken: tokenToScan, appearance: 'dark' as const, variant: 'compact' as const, theme: { palette: { primary: { main: '#8B5CF6' }, background: { paper: '#121215', default: '#09090b' } } } }), [tokenToScan, safetyResult]);
-  const swapConfig = useMemo(() => ({ integrator: 'DustSweeper', referrer: MY_WALLET, fee: 0.00, exchanges: { deny: ['nordstern'] }, appearance: 'dark' as const, variant: 'main' as const, subvariant: 'split' as const, subvariantOptions: { split: 'swap' as const }, fromChain: 56, toChain: 56, fromToken: '0x0000000000000000000000000000000000000000', toToken: '0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82', fromAmount: 0.01, slippage: 0.03, routePriority: 'CHEAPEST' as const, theme: { palette: { primary: { main: '#8B5CF6' }, background: { paper: '#121215', default: '#09090b' } } }, disabledUI: ['walletHeader', 'appearance', 'poweredBy'] }), []);
-  const bridgeConfig = useMemo(() => ({ integrator: 'DustSweeper_Bridge', fee: 0.005, referrer: MY_WALLET, exchanges: { deny: ['nordstern'] }, appearance: 'dark' as const, variant: 'main' as const, subvariant: 'split' as const, subvariantOptions: { split: 'bridge' as const }, theme: { palette: { primary: { main: '#8B5CF6' }, background: { paper: '#121215', default: '#09090b' } } }, disabledUI: ['walletHeader', 'appearance', 'poweredBy'] }), []);
+  const swapConfig = useMemo(() => ({ integrator: 'DustSweeper', referrer: MY_WALLET, fee: 0.00, exchanges: { deny: ['nordstern'] }, appearance: 'dark' as const, variant: 'compact' as const, subvariant: 'split' as const, subvariantOptions: { split: 'swap' as const }, fromChain: 56, toChain: 56, fromToken: '0x0000000000000000000000000000000000000000', toToken: '0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82', fromAmount: 0.01, slippage: 0.03, routePriority: 'CHEAPEST' as const, theme: { palette: { primary: { main: '#8B5CF6' }, background: { paper: '#121215', default: '#09090b' } } }, hiddenUI: ['appearance', 'poweredBy'] as ('appearance' | 'poweredBy')[] }), []);
+  const bridgeConfig = useMemo(() => ({ integrator: 'DustSweeper_Bridge', fee: 0.005, referrer: MY_WALLET, exchanges: { deny: ['nordstern'] }, appearance: 'dark' as const, variant: 'compact' as const, subvariant: 'split' as const, subvariantOptions: { split: 'bridge' as const }, theme: { palette: { primary: { main: '#8B5CF6' }, background: { paper: '#121215', default: '#09090b' } } }, hiddenUI: ['appearance', 'poweredBy'] as ('appearance' | 'poweredBy')[] }), []);
 
   const tabs = [
     { id: 'finder', label: 'Dust Finder', icon: '🧹' },
@@ -876,6 +819,9 @@ export default function AppPortal() {
     { id: 'swap', label: 'Swap', icon: '🔄' },
     { id: 'safety', label: 'Scam Scan', icon: '🛡️' }
   ];
+
+  const foundPricedValue = foundTokens.reduce((sum: number, token: any) => sum + Number(token?.valueUsd || 0), 0);
+  const foundUnpricedCount = foundTokens.filter((token: any) => Number(token?.priceUsd || 0) <= 0).length;
 
   return (
     <div className="min-h-screen w-full bg-[#060609] text-gray-100 font-sans relative overflow-x-hidden">
@@ -1096,7 +1042,7 @@ export default function AppPortal() {
                       <span className={`flex h-7 w-7 items-center justify-center rounded-full text-[10px] font-black ${selectedRecoveryToken ? 'bg-emerald-500/20 text-emerald-200' : 'bg-purple-500/25 text-purple-200'}`}>{selectedRecoveryToken ? '✓' : '2'}</span>
                       <div>
                         <p className={`text-[8px] font-black uppercase tracking-[0.14em] ${selectedRecoveryToken ? 'text-emerald-300' : 'text-purple-300'}`}>{selectedRecoveryToken ? 'Step 3 active' : 'Step 2 active'}</p>
-                        <p className="text-[10px] font-bold text-white">{selectedRecoveryToken ? 'Recover selected asset' : 'Review and choose asset'}</p>
+                        <p className="text-[10px] font-bold text-white">{selectedRecoveryToken ? 'Recover selected asset' : 'Review and choose an asset'}</p>
                       </div>
                     </div>
                   </div>
@@ -1109,9 +1055,9 @@ export default function AppPortal() {
                           <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-emerald-400/20 bg-emerald-500/10 px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-emerald-300">
                             ✓ Scan complete
                           </div>
-                          <p className="text-xs font-bold uppercase tracking-[0.18em] text-emerald-300">Dust found</p>
-                          <p className="mt-2 text-4xl font-black tracking-tight text-white sm:text-5xl">${foundBalance}</p>
-                          <p className="mt-2 font-mono text-[11px] text-gray-500">{shortAddr(portfolioAddress || userAddressInput)}</p>
+                          <p className="text-xs font-bold uppercase tracking-[0.18em] text-emerald-300">Assets found</p>
+                          <p className="mt-2 text-4xl font-black tracking-tight text-white sm:text-5xl">{foundPricedValue > 0 ? `$${foundBalance}` : 'Price unavailable'}</p>
+                          <p className="mt-2 font-mono text-[11px] text-gray-500">{foundUnpricedCount > 0 ? `${foundUnpricedCount} asset${foundUnpricedCount === 1 ? '' : 's'} without a reliable USD price · ` : ''}{shortAddr(portfolioAddress || userAddressInput)}</p>
                         </div>
                         <div className="flex flex-wrap gap-2">
                           <button
@@ -1139,24 +1085,39 @@ export default function AppPortal() {
                       <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                         <div>
                           <p className="text-[10px] font-bold uppercase tracking-widest text-purple-300">Step 2 · Your crypto dust</p>
-                          <h3 className="mt-1 text-lg font-black text-white">Choose an asset to recover</h3>
-                          <p className="mt-1 text-xs text-gray-500">Select a dust asset to check for a recovery route.</p>
+                          <h3 className="mt-1 text-lg font-black text-white">Choose assets to recover</h3>
+                          <p className="mt-1 text-xs text-gray-500">Select one asset at a time. LI.FI will load it below and show the available route before you approve a transaction.</p>
                         </div>
-                        <span className="self-start rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-[10px] font-bold text-gray-400 sm:self-auto">{foundTokens.length} asset{foundTokens.length === 1 ? '' : 's'} found</span>
+                        <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
+                          <span className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-[10px] font-bold text-gray-400">{foundTokens.length} asset{foundTokens.length === 1 ? '' : 's'} found</span>
+                          {selectedRecoveryToken && <span className="rounded-full border border-emerald-400/20 bg-emerald-500/10 px-3 py-1.5 text-[9px] font-black uppercase tracking-widest text-emerald-300">1 selected</span>}
+                        </div>
                       </div>
+
+                      <div className="mb-4 rounded-2xl border border-amber-400/20 bg-amber-500/[0.07] p-4">
+                        <div className="flex items-start gap-3">
+                          <span className="mt-0.5 text-base">⚠️</span>
+                          <div>
+                            <p className="text-[10px] font-black uppercase tracking-wider text-amber-300">You are responsible for your token selection</p>
+                            <p className="mt-1 text-[11px] leading-relaxed text-gray-400">Only select tokens you recognize and intend to recover. Some unsolicited tokens can be malicious or designed to drain wallets when interacted with. Dust Sweeper does not guarantee that a token is safe simply because it appears in your wallet. Review the LI.FI route and wallet request yourself before approving.</p>
+                          </div>
+                        </div>
+                      </div>
+
                       <div className="max-h-[390px] space-y-2 overflow-y-auto pr-1 custom-scrollbar">
                         {foundTokens.length === 0 ? (
                           <div className="rounded-2xl border border-dashed border-white/10 py-10 text-center">
-                            <p className="text-sm font-semibold text-gray-400">No priced assets found</p>
-                            <p className="mt-1 text-xs text-gray-600">All priced assets returned by the wallet scan are shown here.</p>
+                            <p className="text-sm font-semibold text-gray-400">No recovery candidates found</p>
+                            <p className="mt-1 text-xs text-gray-600">No positive-balance assets were returned by the wallet scan.</p>
                           </div>
                         ) : (
                           foundTokens.map((token, i) => {
                             const displayToken = getTokenDisplay(token);
                             const networkName = getNetworkDisplay(token);
-                            const isSelected = selectedRecoveryToken === token;
+                            const isSelected = isRecoveryTokenSelected(token);
                             const tokenAmount = getTokenBalanceNumber(token);
                             const canRoute = Boolean(getTokenChainId(token)) && tokenAmount > 0;
+                            const hasPrice = Number(token?.valueUsd || 0) > 0;
 
                             return (
                               <div
@@ -1180,13 +1141,17 @@ export default function AppPortal() {
                                     </div>
                                   </div>
                                   <div className="flex shrink-0 items-center justify-between gap-4 sm:justify-end">
-                                    <p className="font-mono text-sm font-bold text-emerald-400">${formatUsd(token.valueUsd)}</p>
+                                    <div className="text-left sm:text-right">
+                                      <p className="font-mono text-sm font-bold text-emerald-400">{hasPrice ? `$${formatUsd(token.valueUsd)}` : 'Price unavailable'}</p>
+                                      {!hasPrice && <p className="mt-0.5 text-[9px] text-gray-600">Route will be checked</p>}
+                                    </div>
                                     <button
-                                      onClick={() => selectRecoveryToken(token)}
+                                      type="button"
+                                      onClick={() => toggleRecoveryToken(token)}
                                       disabled={!canRoute}
                                       className={`rounded-xl px-4 py-2.5 text-[10px] font-black uppercase tracking-widest transition ${isSelected ? 'border border-purple-300/30 bg-purple-500/25 text-white' : 'border border-purple-400/25 bg-purple-500/10 text-purple-200 hover:bg-purple-500/20 hover:text-white'} disabled:cursor-not-allowed disabled:opacity-40`}
                                     >
-                                      {isSelected ? 'Selected ✓' : 'Recover'}
+                                      {isSelected ? 'Selected ✓' : 'Select'}
                                     </button>
                                   </div>
                                 </div>
@@ -1197,7 +1162,7 @@ export default function AppPortal() {
                       </div>
                     </div>
 
-                    {parseFloat(foundBalance) > 0 && (
+                    {foundTokens.length > 0 && (
                       <div ref={recoverySectionRef} className="scroll-mt-6 overflow-hidden rounded-[30px] border border-purple-400/15 bg-gradient-to-br from-purple-500/[0.075] via-transparent to-transparent p-3.5 shadow-[0_28px_85px_rgba(0,0,0,0.36)] sm:p-4">
                         <div className="mb-4 flex items-end justify-between gap-4 px-2 pt-1">
                           <div>
@@ -1221,8 +1186,8 @@ export default function AppPortal() {
                               </div>
                             </div>
                             <div className="text-left sm:text-right">
-                              <p className="font-mono text-lg font-black text-emerald-400">${formatUsd(selectedRecoveryToken.valueUsd)}</p>
-                              <button onClick={() => setSelectedRecoveryToken(null)} className="mt-1 text-[9px] font-bold uppercase tracking-widest text-gray-500 transition hover:text-white">Choose another asset</button>
+                              <p className="font-mono text-lg font-black text-emerald-400">{Number(selectedRecoveryToken?.valueUsd || 0) > 0 ? `$${formatUsd(selectedRecoveryToken.valueUsd)}` : 'Price unavailable'}</p>
+                              <button onClick={() => { setSelectedRecoveryToken(null); setRecoveryFailure(null); }} className="mt-1 text-[9px] font-bold uppercase tracking-widest text-gray-500 transition hover:text-white">Choose another asset</button>
                             </div>
                           </div>
                         ) : (
@@ -1266,6 +1231,18 @@ export default function AppPortal() {
                           </div>
                         )}
 
+                        {recoveryRefreshing && (
+                          <div className="mt-3 rounded-2xl border border-emerald-400/20 bg-emerald-500/[0.08] p-4">
+                            <div className="flex items-start gap-3">
+                              <span className="mt-0.5 animate-spin text-base">↻</span>
+                              <div className="min-w-0">
+                                <p className="text-[10px] font-black uppercase tracking-wider text-emerald-200">Recovery completed</p>
+                                <p className="mt-1 text-[11px] leading-relaxed text-gray-400">Updating your wallet balance. The recovered asset will disappear from the Dust Finder automatically.</p>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
                         {recoveryFailure && (
                           <div className="mt-3 rounded-2xl border border-amber-400/20 bg-amber-500/[0.08] p-4">
                             <div className="flex items-start gap-3">
@@ -1279,21 +1256,6 @@ export default function AppPortal() {
                           </div>
                         )}
 
-                        {selectedRecoveryToken && ['unsafe','no-route','error'].includes(routePreflight.status) && (
-                          <div className={`mt-3 rounded-2xl border p-4 ${
-                            routePreflight.status === 'no-route'
-                              ? 'border-white/[0.10] bg-white/[0.03]'
-                              : 'border-amber-400/20 bg-amber-500/[0.07]'
-                          }`}>
-                            <div className="flex items-start gap-3">
-                              <span className="mt-0.5 text-base">{routePreflight.status === 'no-route' ? 'ⓘ' : '⚠️'}</span>
-                              <div className="min-w-0">
-                                <p className="text-[10px] font-black uppercase tracking-wider text-gray-300">{routePreflight.status === 'no-route' ? 'No route found during the initial check' : 'Recovery check needs attention'}</p>
-                                <p className="mt-1 text-[11px] leading-relaxed text-gray-400">{routePreflight.message || 'No route was found during the initial check. LI.FI may still find another route or provider. You can change the token, amount or available route above.'}</p>
-                              </div>
-                            </div>
-                          </div>
-                        )}
                       </div>
                     )}
                   </div>
