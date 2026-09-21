@@ -34,10 +34,10 @@ export default function TermsPage() {
             <div className="text-gray-400 space-y-4">
               <p>By using this tool, you acknowledge and agree to the following fee structure:</p>
               <ul className="list-disc pl-5 space-y-2">
-                <li><strong>Dust recovery / consolidation:</strong> A <strong>1%</strong> service fee is configured for recovery and consolidation routes.</li>
-                <li><strong>Scam Contract Scanner transaction flow:</strong> A <strong>1%</strong> service fee is configured when that transaction flow is used.</li>
-                <li><strong>Standard Swap:</strong> The current Swap widget is configured with a <strong>0%</strong> service fee.</li>
-                <li><strong>Bridge:</strong> The current Bridge widget is configured with a <strong>0.5%</strong> service fee.</li>
+                <li><strong>Dust recovery / consolidation:</strong> A <strong>5%</strong> service fee is configured for recovery and consolidation routes.</li>
+                <li><strong>Scam Contract Scanner transaction flow:</strong> A <strong>5%</strong> service fee is configured when that transaction flow is used.</li>
+                <li><strong>Standard Swap:</strong> The current Swap widget is configured with a <strong>1%</strong> service fee.</li>
+                <li><strong>Bridge:</strong> The current Bridge widget is configured with a <strong>2%</strong> service fee.</li>
                 <li><strong>Network Fees (Gas):</strong> You are responsible for paying the network “gas” fees. If your balance is too small to cover the gas fee, the transaction may fail or no route may be available.</li>
               </ul>
             </div>

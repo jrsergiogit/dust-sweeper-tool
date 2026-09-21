@@ -52,8 +52,8 @@ export default function BlogArticle() {
           </p>
 
           <ul className="list-disc pl-6 space-y-4 text-gray-400">
-            <li><strong>Multi-Chain Consolidation:</strong> Move assets from 20 networks to 1 in one click.</li>
-            <li><strong>Smart Risk Scoring:</strong> Identify if a token is "Dust" or a "Malicious Honeypot".</li>
+            <li><strong>Multi-Chain Recovery:</strong> Discover balances on the 7 networks currently queried by Dust Finder, then use LI.FI-supported swap, bridge, and recovery routes when available.</li>
+            <li><strong>Token Risk Signals:</strong> Review automated GoPlus security indicators separately from balance discovery and transaction execution.</li>
             <li><strong>Gas Optimization:</strong> Compare route costs before recovering dust, with final fees shown in the transaction flow.</li>
           </ul>
 

@@ -177,11 +177,11 @@ export default function SecurityPage() {
             </h2>
             <div className="text-gray-400 leading-relaxed space-y-4">
               <p>
-                The current application configuration uses a 1% service fee for
-                Dust Finder recovery/consolidation routes and a 1% fee for the
+                The current application configuration uses a 5% service fee for
+                Dust Finder recovery/consolidation routes and a 5% fee for the
                 transaction flow available from the Scam Contract Scanner when
-                applicable. The standard Swap widget is configured at 0%, and
-                the Bridge widget is configured at 0.5%. Network gas fees are
+                applicable. The standard Swap widget is configured at 1%, and
+                the Bridge widget is configured at 2%. Network gas fees are
                 separate and depend on the blockchain and transaction.
               </p>
               <p>

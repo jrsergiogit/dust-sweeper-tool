@@ -730,7 +730,7 @@ export default function AppPortal() {
         order: 'CHEAPEST',
         slippage: '0.005',
         integrator: 'DustSweeper',
-        fee: '0.01',
+        fee: '0.05',
         referrer: MY_WALLET,
         maxPriceImpact: '0.15',
         skipSimulation: 'false',
@@ -938,7 +938,7 @@ export default function AppPortal() {
 
     return {
       integrator: 'DustSweeper',
-      fee: 0.01,
+      fee: 0.05,
       referrer: MY_WALLET,
       exchanges: { deny: ['nordstern', ...failedRouteTools.exchanges] },
       bridges: failedRouteTools.bridges.length ? { deny: failedRouteTools.bridges } : undefined,
@@ -965,9 +965,9 @@ export default function AppPortal() {
       disabledUI: ['walletHeader', 'appearance', 'poweredBy'],
     };
   }, [selectedRecoveryToken, failedRouteTools]);
-  const safetyBuyConfig = useMemo(() => ({ integrator: 'DustSweeper', fee: 0.01, referrer: MY_WALLET, exchanges: { deny: ['nordstern'] }, toChain: safetyResult?.detectedChain ? parseInt(safetyResult.detectedChain) : 56, toToken: tokenToScan, appearance: 'dark' as const, variant: 'compact' as const, theme: { palette: { primary: { main: '#8B5CF6' }, background: { paper: '#121215', default: '#09090b' } } } }), [tokenToScan, safetyResult]);
-  const swapConfig = useMemo(() => ({ integrator: 'DustSweeper', referrer: MY_WALLET, fee: 0.00, exchanges: { deny: ['nordstern'] }, appearance: 'dark' as const, variant: 'main' as const, subvariant: 'split' as const, subvariantOptions: { split: 'swap' as const }, fromChain: 56, toChain: 56, fromToken: '0x0000000000000000000000000000000000000000', toToken: '0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82', fromAmount: 0.01, slippage: 0.03, routePriority: 'CHEAPEST' as const, theme: { palette: { primary: { main: '#8B5CF6' }, background: { paper: '#121215', default: '#09090b' } } }, disabledUI: ['walletHeader', 'appearance', 'poweredBy'] }), []);
-  const bridgeConfig = useMemo(() => ({ integrator: 'DustSweeper_Bridge', fee: 0.005, referrer: MY_WALLET, exchanges: { deny: ['nordstern'] }, appearance: 'dark' as const, variant: 'main' as const, subvariant: 'split' as const, subvariantOptions: { split: 'bridge' as const }, theme: { palette: { primary: { main: '#8B5CF6' }, background: { paper: '#121215', default: '#09090b' } } }, disabledUI: ['walletHeader', 'appearance', 'poweredBy'] }), []);
+  const safetyBuyConfig = useMemo(() => ({ integrator: 'DustSweeper', fee: 0.05, referrer: MY_WALLET, exchanges: { deny: ['nordstern'] }, toChain: safetyResult?.detectedChain ? parseInt(safetyResult.detectedChain) : 56, toToken: tokenToScan, appearance: 'dark' as const, variant: 'compact' as const, theme: { palette: { primary: { main: '#8B5CF6' }, background: { paper: '#121215', default: '#09090b' } } } }), [tokenToScan, safetyResult]);
+  const swapConfig = useMemo(() => ({ integrator: 'DustSweeper', referrer: MY_WALLET, fee: 0.01, exchanges: { deny: ['nordstern'] }, appearance: 'dark' as const, variant: 'main' as const, subvariant: 'split' as const, subvariantOptions: { split: 'swap' as const }, fromChain: 56, toChain: 56, fromToken: '0x0000000000000000000000000000000000000000', toToken: '0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82', fromAmount: 0.01, slippage: 0.03, routePriority: 'CHEAPEST' as const, theme: { palette: { primary: { main: '#8B5CF6' }, background: { paper: '#121215', default: '#09090b' } } }, disabledUI: ['walletHeader', 'appearance', 'poweredBy'] }), []);
+  const bridgeConfig = useMemo(() => ({ integrator: 'DustSweeper_Bridge', fee: 0.02, referrer: MY_WALLET, exchanges: { deny: ['nordstern'] }, appearance: 'dark' as const, variant: 'main' as const, subvariant: 'split' as const, subvariantOptions: { split: 'bridge' as const }, theme: { palette: { primary: { main: '#8B5CF6' }, background: { paper: '#121215', default: '#09090b' } } }, disabledUI: ['walletHeader', 'appearance', 'poweredBy'] }), []);
 
   const tabs = [
     { id: 'finder', label: 'Dust Finder', icon: '🧹' },
