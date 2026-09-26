@@ -994,13 +994,16 @@ export default function AppPortal() {
         : 'finder-default',
       appearance: 'dark' as const,
       variant: 'compact' as const,
-      theme: { palette: { primary: { main: '#8B5CF6' }, background: { paper: '#121215', default: '#09090b' } } },
+      theme: {
+        palette: { primary: { main: '#8B5CF6' }, background: { paper: '#121215', default: '#09090b' } },
+        container: { display: 'flex', height: 'auto', maxHeight: 'none', overflow: 'visible', backgroundColor: '#09090b' },
+      },
       disabledUI: ['walletHeader', 'appearance', 'poweredBy'],
     };
   }, [selectedRecoveryToken, failedRouteTools]);
-  const safetyBuyConfig = useMemo(() => ({ integrator: 'DustSweeper', fee: 0.05, referrer: MY_WALLET, exchanges: { deny: ['nordstern'] }, toChain: safetyResult?.detectedChain ? parseInt(safetyResult.detectedChain) : 56, toToken: tokenToScan, appearance: 'dark' as const, variant: 'compact' as const, theme: { palette: { primary: { main: '#8B5CF6' }, background: { paper: '#121215', default: '#09090b' } } } }), [tokenToScan, safetyResult]);
-  const swapConfig = useMemo(() => ({ integrator: 'DustSweeper', referrer: MY_WALLET, fee: 0.01, exchanges: { deny: ['nordstern'] }, appearance: 'dark' as const, variant: 'main' as const, subvariant: 'split' as const, subvariantOptions: { split: 'swap' as const }, fromChain: 56, toChain: 56, fromToken: '0x0000000000000000000000000000000000000000', toToken: '0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82', fromAmount: 0.01, slippage: 0.03, routePriority: 'CHEAPEST' as const, theme: { palette: { primary: { main: '#8B5CF6' }, background: { paper: '#121215', default: '#09090b' } } }, disabledUI: ['walletHeader', 'appearance', 'poweredBy'] }), []);
-  const bridgeConfig = useMemo(() => ({ integrator: 'DustSweeper_Bridge', fee: 0.01, referrer: MY_WALLET, exchanges: { deny: ['nordstern'] }, appearance: 'dark' as const, variant: 'main' as const, subvariant: 'split' as const, subvariantOptions: { split: 'bridge' as const }, theme: { palette: { primary: { main: '#8B5CF6' }, background: { paper: '#121215', default: '#09090b' } } }, disabledUI: ['walletHeader', 'appearance', 'poweredBy'] }), []);
+  const safetyBuyConfig = useMemo(() => ({ integrator: 'DustSweeper', fee: 0.05, referrer: MY_WALLET, exchanges: { deny: ['nordstern'] }, toChain: safetyResult?.detectedChain ? parseInt(safetyResult.detectedChain) : 56, toToken: tokenToScan, appearance: 'dark' as const, variant: 'compact' as const, theme: { palette: { primary: { main: '#8B5CF6' }, background: { paper: '#121215', default: '#09090b' } }, container: { display: 'flex', height: 'auto', maxHeight: 'none', overflow: 'visible', backgroundColor: '#09090b' } } }), [tokenToScan, safetyResult]);
+  const swapConfig = useMemo(() => ({ integrator: 'DustSweeper', referrer: MY_WALLET, fee: 0.01, exchanges: { deny: ['nordstern'] }, appearance: 'dark' as const, variant: 'compact' as const, fromChain: 56, toChain: 56, fromToken: '0x0000000000000000000000000000000000000000', toToken: '0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82', fromAmount: 0.01, slippage: 0.03, routePriority: 'CHEAPEST' as const, theme: { palette: { primary: { main: '#8B5CF6' }, background: { paper: '#121215', default: '#09090b' } }, container: { display: 'flex', height: 'auto', maxHeight: 'none', overflow: 'visible', backgroundColor: '#09090b' } }, disabledUI: ['walletHeader', 'appearance', 'poweredBy'] }), []);
+  const bridgeConfig = useMemo(() => ({ integrator: 'DustSweeper_Bridge', fee: 0.01, referrer: MY_WALLET, exchanges: { deny: ['nordstern'] }, appearance: 'dark' as const, variant: 'compact' as const, theme: { palette: { primary: { main: '#8B5CF6' }, background: { paper: '#121215', default: '#09090b' } }, container: { display: 'flex', height: 'auto', maxHeight: 'none', overflow: 'visible', backgroundColor: '#09090b' } }, disabledUI: ['walletHeader', 'appearance', 'poweredBy'] }), []);
 
   const tabs = [
     { id: 'finder', label: 'Dust Finder', icon: '🧹' },
@@ -1283,7 +1286,7 @@ export default function AppPortal() {
                         </div>
                         <span className="self-start rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-[10px] font-bold text-gray-400 sm:self-auto">{foundTokens.length} asset{foundTokens.length === 1 ? '' : 's'} found</span>
                       </div>
-                      <div className="max-h-[390px] space-y-2 overflow-y-auto pr-1 custom-scrollbar">
+                      <div className="max-h-[460px] space-y-2 overflow-y-auto pr-1 custom-scrollbar">
                         {foundTokens.length === 0 ? (
                           <div className="rounded-2xl border border-dashed border-white/10 py-10 text-center">
                             <p className="text-sm font-semibold text-gray-400">No assets with a positive balance found</p>
@@ -1393,7 +1396,7 @@ export default function AppPortal() {
                           onCompleted={handleRecoveryCompleted}
                         />
 
-                        <div className="overflow-hidden rounded-[24px] border border-white/[0.10] bg-black shadow-[0_24px_70px_rgba(0,0,0,0.45)]">
+                        <div className="overflow-hidden rounded-[24px] border border-white/[0.10] bg-[#09090b] shadow-[0_24px_70px_rgba(0,0,0,0.45)]">
                           <LiFiWidget
                             key={selectedRecoveryToken ? `${getTokenChainId(selectedRecoveryToken)}-${getTokenAddress(selectedRecoveryToken)}-${getTokenDisplay(selectedRecoveryToken).symbol}-${recoveryWidgetNonce}-${failedRouteTools.bridges.join(',')}-${failedRouteTools.exchanges.join(',')}` : `finder-default-${recoveryWidgetNonce}`}
                             integrator="DustSweeper"
@@ -1568,7 +1571,7 @@ export default function AppPortal() {
                           </div>
                           <span className="rounded-full border border-purple-400/20 bg-purple-500/10 px-3 py-1.5 text-[10px] font-bold uppercase text-purple-300">{walletAssets.length} assets</span>
                         </div>
-                        <div className="max-h-[520px] space-y-2 overflow-y-auto pr-1 custom-scrollbar">
+                        <div className="space-y-2">
                           {walletAssets.length === 0 ? (
                             <div className="rounded-2xl border border-dashed border-white/10 py-12 text-center text-sm text-gray-600">No positive token balances found.</div>
                           ) : walletAssets.map((token, i) => {
@@ -1628,7 +1631,7 @@ export default function AppPortal() {
 
             {/* BRIDGE */}
             {activeTab === 'bridge' && (
-              <div className="overflow-hidden rounded-[32px] border border-white/10 bg-white/[0.025] p-2 shadow-2xl animate-in fade-in zoom-in-95 duration-300">
+              <div className="overflow-hidden rounded-[32px] border border-white/10 bg-[#09090b] p-2 shadow-2xl animate-in fade-in zoom-in-95 duration-300">
                 <div className="mb-3 flex items-center gap-3 px-4 pt-4">
                   <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-500/10 text-xl">🌉</span>
                   <div><p className="text-[10px] font-bold uppercase tracking-widest text-purple-300">Cross-chain</p><h2 className="font-black text-white">Bridge assets</h2></div>
@@ -1639,7 +1642,7 @@ export default function AppPortal() {
 
             {/* SWAP */}
             {activeTab === 'swap' && (
-              <div className="min-h-[610px] overflow-hidden rounded-[32px] border border-white/10 bg-white/[0.025] p-2 shadow-2xl animate-in fade-in zoom-in-95 duration-300">
+              <div className="overflow-hidden rounded-[32px] border border-white/10 bg-[#09090b] p-2 shadow-2xl animate-in fade-in zoom-in-95 duration-300">
                 <div className="mb-3 flex items-center gap-3 px-4 pt-4">
                   <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-500/10 text-xl">🔄</span>
                   <div><p className="text-[10px] font-bold uppercase tracking-widest text-blue-300">Trade</p><h2 className="font-black text-white">Swap tokens</h2></div>
@@ -1778,7 +1781,7 @@ export default function AppPortal() {
                             <p className="mt-1 text-sm font-bold text-white">Review the available route with LI.FI</p>
                             <p className="mt-1 text-xs leading-5 text-gray-500">Dust Sweeper does not verify whether this token can be sold. Review the full operation in LI.FI before approving it.</p>
                           </div>
-                          <div className="overflow-hidden rounded-2xl border border-white/10 bg-black shadow-2xl"><LiFiWidget integrator="DustSweeper" config={safetyBuyConfig as any} /></div>
+                          <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#09090b] shadow-2xl"><LiFiWidget integrator="DustSweeper" config={safetyBuyConfig as any} /></div>
                         </div>
                       )}
                     </div>
