@@ -3,6 +3,7 @@
 import React, { useMemo, useState, useEffect, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import { useWidgetEvents, WidgetEvent } from '@lifi/widget';
+import { getBrowserLanguage, trackDustEvent } from './lib/dust-analytics';
 
 const LiFiWidget = dynamic(() => import('@lifi/widget').then((module) => module.LiFiWidget), { ssr: false });
 
@@ -513,6 +514,10 @@ export default function AppPortal() {
   const [safetyResult, setSafetyResult] = useState<any>(null);
   const [safetyError, setSafetyError] = useState('');
 
+  useEffect(() => {
+    trackDustEvent('page_view', { language: getBrowserLanguage() });
+  }, []);
+
   // --- GOPLUS TOKEN DATA (MULTICHAIN) ---
   const checkTokenSafety = async (contract: string) => {
     const normalizedContract = contract.trim().toLowerCase();
@@ -656,6 +661,7 @@ export default function AppPortal() {
 
   const handleScan = async () => {
     if (!isValidAddress(userAddressInput)) { alert('Invalid address.'); return; }
+    trackDustEvent('wallet_scan_started', { feature: 'finder', language: getBrowserLanguage() });
     setScanStep('scanning');
     const result = await fetchRealBalances(userAddressInput.trim());
     setTimeout(() => {
@@ -668,6 +674,15 @@ export default function AppPortal() {
       (sum: number, token: any) => sum + Number(token?.valueUsd || 0),
       0
     );
+
+    trackDustEvent('wallet_scan_completed', {
+      feature: 'finder',
+      language: getBrowserLanguage(),
+      result: allPositiveAssets.length > 0 ? 'assets_found' : 'no_assets',
+    });
+    if (allPositiveAssets.length > 0) {
+      trackDustEvent('wallet_assets_found', { feature: 'finder', language: getBrowserLanguage() });
+    }
 
     setFoundTokens(allPositiveAssets);
     setFoundBalance(pricedValue.toFixed(2));
@@ -782,6 +797,12 @@ export default function AppPortal() {
       }
 
       if (!tx?.to || !tx?.data) {
+        if (!allowanceKnownSufficient) {
+          trackDustEvent('recovery_route_available', {
+            feature: 'finder', language: getBrowserLanguage(), chain_id: chainId,
+            route_status: 'needs_approval', route_tool: tool,
+          });
+        }
         setRoutePreflight({
           status: allowanceKnownSufficient ? 'unsafe' : 'needs-approval',
           tool,
@@ -816,6 +837,10 @@ export default function AppPortal() {
         }
       }
 
+      trackDustEvent('recovery_route_available', {
+        feature: 'finder', language: getBrowserLanguage(), chain_id: chainId,
+        route_status: allowanceKnownSufficient ? 'ready' : 'needs_approval', route_tool: tool,
+      });
       setRoutePreflight({
         status: allowanceKnownSufficient ? 'ready' : 'needs-approval',
         tool,
@@ -870,6 +895,11 @@ export default function AppPortal() {
   };
 
   const handleRecoveryCompleted = () => {
+    trackDustEvent('recovery_completed', {
+      feature: 'finder', language: getBrowserLanguage(),
+      chain_id: selectedRecoveryToken ? getTokenChainId(selectedRecoveryToken) : '',
+      route_status: 'completed',
+    });
     setRecoveryFailure(null);
     setFailedRouteTools({ bridges: [], exchanges: [] });
     setRouteRetrying(false);
@@ -877,6 +907,9 @@ export default function AppPortal() {
   };
 
   const selectRecoveryToken = (token: any) => {
+    trackDustEvent('recovery_asset_selected', {
+      feature: 'finder', language: getBrowserLanguage(), chain_id: getTokenChainId(token),
+    });
     setRecoveryFailure(null);
     setFailedRouteTools({ bridges: [], exchanges: [] });
     setRouteRetrying(false);
@@ -967,7 +1000,7 @@ export default function AppPortal() {
   }, [selectedRecoveryToken, failedRouteTools]);
   const safetyBuyConfig = useMemo(() => ({ integrator: 'DustSweeper', fee: 0.05, referrer: MY_WALLET, exchanges: { deny: ['nordstern'] }, toChain: safetyResult?.detectedChain ? parseInt(safetyResult.detectedChain) : 56, toToken: tokenToScan, appearance: 'dark' as const, variant: 'compact' as const, theme: { palette: { primary: { main: '#8B5CF6' }, background: { paper: '#121215', default: '#09090b' } } } }), [tokenToScan, safetyResult]);
   const swapConfig = useMemo(() => ({ integrator: 'DustSweeper', referrer: MY_WALLET, fee: 0.01, exchanges: { deny: ['nordstern'] }, appearance: 'dark' as const, variant: 'main' as const, subvariant: 'split' as const, subvariantOptions: { split: 'swap' as const }, fromChain: 56, toChain: 56, fromToken: '0x0000000000000000000000000000000000000000', toToken: '0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82', fromAmount: 0.01, slippage: 0.03, routePriority: 'CHEAPEST' as const, theme: { palette: { primary: { main: '#8B5CF6' }, background: { paper: '#121215', default: '#09090b' } } }, disabledUI: ['walletHeader', 'appearance', 'poweredBy'] }), []);
-  const bridgeConfig = useMemo(() => ({ integrator: 'DustSweeper_Bridge', fee: 0.02, referrer: MY_WALLET, exchanges: { deny: ['nordstern'] }, appearance: 'dark' as const, variant: 'main' as const, subvariant: 'split' as const, subvariantOptions: { split: 'bridge' as const }, theme: { palette: { primary: { main: '#8B5CF6' }, background: { paper: '#121215', default: '#09090b' } } }, disabledUI: ['walletHeader', 'appearance', 'poweredBy'] }), []);
+  const bridgeConfig = useMemo(() => ({ integrator: 'DustSweeper_Bridge', fee: 0.01, referrer: MY_WALLET, exchanges: { deny: ['nordstern'] }, appearance: 'dark' as const, variant: 'main' as const, subvariant: 'split' as const, subvariantOptions: { split: 'bridge' as const }, theme: { palette: { primary: { main: '#8B5CF6' }, background: { paper: '#121215', default: '#09090b' } } }, disabledUI: ['walletHeader', 'appearance', 'poweredBy'] }), []);
 
   const tabs = [
     { id: 'finder', label: 'Dust Finder', icon: '🧹' },
