@@ -30,7 +30,7 @@ const faqs = [
   },
   {
     question: "What are the service fees, and when are they charged?",
-    answer: "Dust recovery and consolidation use a 1% service fee. The transaction flow available from the Scam Contract Scanner also uses a 1% fee when applicable. The standard Swap widget currently uses a 0% service fee, while the Bridge widget uses a 0.5% service fee. Any applicable fee is included in the route/transaction you review and approve in your wallet."
+    answer: "Dust recovery and consolidation use a 5% service fee. The transaction flow available from the Scam Contract Scanner also uses a 5% fee when applicable. The standard Swap widget currently uses a 1% service fee, while the Bridge widget uses a 1% service fee. Any applicable fee is included in the route/transaction you review and approve in your wallet."
   },
   {
     question: "Can a transaction be reversed once I approve it?",

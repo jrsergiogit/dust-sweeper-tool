@@ -181,7 +181,7 @@ export default function SecurityPage() {
                 Dust Finder recovery/consolidation routes and a 5% fee for the
                 transaction flow available from the Scam Contract Scanner when
                 applicable. The standard Swap widget is configured at 1%, and
-                the Bridge widget is configured at 2%. Network gas fees are
+                the Bridge widget is configured at 1%. Network gas fees are
                 separate and depend on the blockchain and transaction.
               </p>
               <p>
