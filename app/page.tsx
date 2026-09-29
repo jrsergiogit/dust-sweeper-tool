@@ -662,6 +662,25 @@ export default function AppPortal() {
   const handleScan = async () => {
     if (!isValidAddress(userAddressInput)) { alert('Invalid address.'); return; }
     trackDustEvent('wallet_scan_started', { feature: 'finder', language: getBrowserLanguage() });
+
+    // Google Ads conversion: Dust Sweeper - Finder Scan Started
+    if (typeof window !== "undefined") {
+      const gtag = (
+        window as Window & {
+          gtag?: (
+            command: "event",
+            eventName: string,
+            params: Record<string, unknown>
+          ) => void;
+        }
+      ).gtag;
+
+      if (typeof gtag === "function") {
+        gtag("event", "conversion", {
+          send_to: "AW-10796225601/yRUoCOahioodEMGohZwo",
+        });
+      }
+    }
     setScanStep('scanning');
     const result = await fetchRealBalances(userAddressInput.trim());
     setTimeout(() => {
