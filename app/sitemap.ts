@@ -41,12 +41,10 @@ const TOKEN_SLUGS = [
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = 'https://dustsweepertool.com'
-  const now = new Date()
+  const now = new Date('2026-09-29')
 
   const staticPages: MetadataRoute.Sitemap = [
     { url: baseUrl, lastModified: now, changeFrequency: 'daily', priority: 1 },
-    { url: `${baseUrl}/risk-scanner`, lastModified: now, changeFrequency: 'weekly', priority: 0.8 },
-    { url: `${baseUrl}/dust-recovery`, lastModified: now, changeFrequency: 'weekly', priority: 0.8 },
     { url: `${baseUrl}/learn`, lastModified: now, changeFrequency: 'weekly', priority: 0.9 },
     { url: `${baseUrl}/bridge`, lastModified: now, changeFrequency: 'weekly', priority: 0.9 },
     { url: `${baseUrl}/tokens`, lastModified: now, changeFrequency: 'weekly', priority: 0.8 },
@@ -75,12 +73,17 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ...chains.map(([chain]) => ({ url: `${baseUrl}/learn/network/${chain}`, lastModified: now, changeFrequency: 'monthly' as const, priority: 0.75 })),
   ]
 
+  const chainTopicPages: MetadataRoute.Sitemap = chains.flatMap(([chain]) =>
+    topics.map(([topic]) => ({
+      url: `${baseUrl}/learn/${chain}/${topic}`, lastModified: now, changeFrequency: 'monthly' as const, priority: 0.4,
+    }))
+  )
+
   const intentPages: MetadataRoute.Sitemap = SEO_INTENTS.map((slug) => ({
     url: `${baseUrl}/${slug}`, lastModified: now, changeFrequency: 'monthly' as const, priority: 0.65,
   }))
 
   const tokenPages: MetadataRoute.Sitemap = [
-    { url: `${baseUrl}/tokens`, lastModified: now, changeFrequency: 'weekly' as const, priority: 0.8 },
     ...TOKEN_SLUGS.map((slug) => ({ url: `${baseUrl}/tokens/${slug}`, lastModified: now, changeFrequency: 'monthly' as const, priority: 0.65 })),
   ]
 
@@ -99,5 +102,5 @@ export default function sitemap(): MetadataRoute.Sitemap {
       url: `${baseUrl}/bridge/${slug}`, lastModified: now, changeFrequency: 'monthly' as const, priority: 0.6,
     }))
 
-  return [...staticPages, ...chainPages, ...learnPages, ...networkHubPages, ...intentPages, ...tokenPages, ...bridgePages]
+  return [...staticPages, ...chainPages, ...learnPages, ...networkHubPages, ...chainTopicPages, ...intentPages, ...tokenPages, ...bridgePages]
 }
