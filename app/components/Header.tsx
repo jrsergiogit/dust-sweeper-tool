@@ -14,10 +14,11 @@ export default function Header() {
     <header className="sticky top-0 z-50 w-full border-b border-white/10 bg-[#08090e]/95 backdrop-blur-lg">
       <nav aria-label="Main navigation" className="mx-auto max-w-[1380px] px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between gap-3 sm:h-20">
-          <Link href="/" className="flex min-w-0 items-center gap-2.5 text-white">
+          {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- The logo intentionally reloads the page to start a new scan. */}
+          <a href="/?tool=finder" className="flex min-w-0 items-center gap-2.5 text-white">
             <Image src="/logo.png" alt="" width={44} height={44} priority className="h-11 w-11 shrink-0 object-contain" />
             <div className="min-w-0"><p className="truncate text-base font-bold sm:text-lg">Dust Sweeper Tool</p><p className="hidden text-xs text-gray-400 sm:block">Find forgotten funds. Analyze wallets. Bridge, Swap and Scan tokens.</p></div>
-          </Link>
+          </a>
           <div className="hidden items-center gap-5 md:flex">
             {menuItems.map(item => <Link key={item.name} href={item.href} className="inline-flex min-h-11 items-center text-sm text-gray-300 hover:text-white">{item.name}</Link>)}
           </div>
