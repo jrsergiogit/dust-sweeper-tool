@@ -16,8 +16,13 @@ export default function FinderIntro({ address, busy, error, onAddressChange, onS
       <div className="relative grid gap-5 p-5 sm:gap-7 sm:p-8 lg:grid-cols-[1fr_1fr] lg:items-center lg:gap-10 lg:p-10">
         <div>
           <p className="text-xs font-bold uppercase tracking-[0.15em] text-purple-300">Dust Finder</p>
-          <h1 id="finder-title" className="mt-3 max-w-lg text-[28px] font-black leading-[1.08] tracking-tight text-white sm:text-4xl lg:text-5xl">Find forgotten crypto.<br /><span className="text-purple-300">See your options.</span></h1>
-          <p className="mt-4 max-w-lg text-base leading-7 text-gray-200 lg:text-[17px]">Scan a public wallet address across 7 networks. Review your assets and recovery options.</p>
+          <h1 id="finder-title" className="mt-3 max-w-lg text-[28px] font-black leading-[1.08] tracking-tight text-white sm:text-4xl lg:text-5xl">
+  Find forgotten crypto.<br />
+  <span className="text-[18px] leading-tight text-purple-300 sm:text-[30px] lg:text-[28px]">
+    Discover what you can recover.
+  </span>
+</h1>
+          <p className="mt-4 max-w-lg text-base leading-7 text-gray-200 lg:text-[17px]">Scan a public wallet address across networks. Review your assets and recovery options.</p>
           <div className="mt-5 hidden gap-2 text-[15px] leading-6 text-gray-200 lg:grid">
             <p><span className="mr-2 text-emerald-300" aria-hidden="true">&#10003;</span>No wallet connection to scan</p>
             <p><span className="mr-2 text-emerald-300" aria-hidden="true">&#10003;</span>No private key or seed phrase</p>
