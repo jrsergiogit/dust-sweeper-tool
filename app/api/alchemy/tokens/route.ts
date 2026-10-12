@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+import { hasAllowedOrigin, rateAllowed, readSmallJson } from '../../../lib/server/request-guard';
+
 export const runtime = 'nodejs';
 
 const NETWORKS = [
@@ -21,37 +23,6 @@ const NETWORK_CHAIN_IDS: Record<string, number> = {
   'opt-mainnet': 10,
   'avax-mainnet': 43114,
 };
-
-const RATE_LIMIT = 30;
-const RATE_WINDOW_MS = 60 * 60 * 1000;
-
-const rateLimitStore = new Map<string, number[]>();
-
-function getClientIp(request: NextRequest) {
-  return (
-    request.headers.get('x-vercel-forwarded-for')?.split(',')[0].trim() ||
-    request.headers.get('x-forwarded-for')?.split(',')[0].trim() ||
-    request.headers.get('x-real-ip')?.trim() ||
-    'unknown'
-  );
-}
-
-function isRateLimited(ip: string) {
-  const now = Date.now();
-
-  const recentRequests = (rateLimitStore.get(ip) || []).filter(
-    (timestamp) => now - timestamp < RATE_WINDOW_MS
-  );
-
-  if (recentRequests.length >= RATE_LIMIT) {
-    rateLimitStore.set(ip, recentRequests);
-    return true;
-  }
-
-  recentRequests.push(now);
-  rateLimitStore.set(ip, recentRequests);
-  return false;
-}
 
 function isValidAddress(address: string) {
   return /^0x[a-fA-F0-9]{40}$/.test(address.trim());
@@ -85,9 +56,8 @@ function rawToNumber(raw: string, decimals: number) {
 }
 
 export async function POST(request: NextRequest) {
-  const clientIp = getClientIp(request);
-
-  if (isRateLimited(clientIp)) {
+  if (!hasAllowedOrigin(request)) return NextResponse.json({ error: 'Invalid origin' }, { status: 403 });
+  if (!await rateAllowed(request, 'scan', 30, 3600)) {
     return NextResponse.json(
       {
         error:
@@ -104,7 +74,7 @@ export async function POST(request: NextRequest) {
 
   if (!apiKey) {
     return NextResponse.json(
-      { error: 'Missing ALCHEMY_API_KEY' },
+      { error: 'Wallet scanning is temporarily unavailable.', category: 'service_unavailable' },
       { status: 500 }
     );
   }
@@ -112,7 +82,8 @@ export async function POST(request: NextRequest) {
   let body: { address?: string };
 
   try {
-    body = await request.json();
+    body = await readSmallJson(request, 1500) as { address?: string };
+    if (!body || typeof body !== "object") throw new Error("Invalid body");
   } catch {
     return NextResponse.json(
       { error: 'Invalid JSON body' },
@@ -132,12 +103,15 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const response = await fetch(
+  let response: Response;
+  try {
+    response = await fetch(
     `https://api.g.alchemy.com/data/v1/${apiKey}/assets/tokens/by-address`,
     {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       cache: 'no-store',
+      signal: AbortSignal.any([request.signal, AbortSignal.timeout(20000)]),
       body: JSON.stringify({
         addresses: [
           {
@@ -153,23 +127,26 @@ export async function POST(request: NextRequest) {
     }
   );
 
+  } catch {
+    return NextResponse.json({ error: 'The wallet service did not respond in time. Please try again.', category: 'timeout' }, { status: 504, headers: { 'Cache-Control': 'no-store' } });
+  }
+
   const data = await response.json().catch(() => null);
 
   if (!response.ok) {
-    return NextResponse.json(
-      {
-        error:
-          data?.error?.message ||
-          data?.message ||
-          'Alchemy request failed'
-      },
-      { status: response.status }
-    );
+    return NextResponse.json({
+      error: response.status === 429 ? 'The wallet service is busy. Please try again shortly.' : 'Unable to load wallet data right now. Please try again.',
+      category: response.status === 429 ? 'rate_limited' : 'provider_error',
+    }, { status: response.status === 429 ? 429 : 502, headers: { 'Cache-Control': 'no-store' } });
   }
-
-  const source = Array.isArray(data?.data?.tokens)
-    ? data.data.tokens
-    : [];
+  if (!Array.isArray(data?.data?.tokens)) {
+    return NextResponse.json({ error: 'The wallet service returned an incomplete response. Please try again.', category: 'provider_error' }, { status: 502 });
+  }
+  const failedNetworks: string[] = [...new Set<string>(
+    (Array.isArray(data?.error?.partialErrors) ? data.error.partialErrors : [])
+      .map((entry: any) => String(entry.network || 'unknown')).filter(Boolean)
+  )];
+  const source = data.data.tokens;
 
   // IMPORTANT:
   // Every token with a positive wallet balance is returned.
@@ -259,6 +236,9 @@ export async function POST(request: NextRequest) {
     // Tokens with balance > 0 but no reliable USD price.
     unpricedTokens: unpricedTokens.length,
 
-    networks: NETWORKS
-  });
+    networks: NETWORKS,
+    failedNetworks,
+    partial: failedNetworks.length > 0 || Boolean(data?.data?.pageKey),
+    moreResults: Boolean(data?.data?.pageKey),
+  }, { headers: { 'Cache-Control': 'no-store' } });
 }

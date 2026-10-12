@@ -24,3 +24,13 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+/* Focus remains visible; no horizontal clipping required for the main form. */
+:where(button, a, input, select, summary):focus-visible {
+  outline: 2px solid #c4b5fd;
+  outline-offset: 3px;
+}
+input, select { font-size: 16px; }
+summary { list-style-position: inside; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}

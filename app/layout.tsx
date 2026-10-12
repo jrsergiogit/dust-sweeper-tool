@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import CleanUrl from "./CleanUrl";
+import PageAnalytics from "./components/PageAnalytics";
+import { ATTRIBUTION_BOOTSTRAP } from "./lib/attribution-bootstrap";
 import Header from "./components/Header";
 import Script from "next/script"; // Importante para as tags do Google
 
@@ -36,11 +38,12 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <head>
+        <Script id="dust-attribution-bootstrap" strategy="beforeInteractive">{ATTRIBUTION_BOOTSTRAP}</Script>
         {/* Google Tag (gtag.js) - Global */}
-        <Script
+        {!isDev && <Script
           src="https://www.googletagmanager.com/gtag/js?id=AW-10796225601"
           strategy="afterInteractive"
-        />
+        />}
 
         <Script
           id="dust-sweeper-structured-data"
@@ -76,19 +79,20 @@ export default function RootLayout({
           }}
         />
 
-        <Script id="google-ads-tag" strategy="afterInteractive">
+        {!isDev && <Script id="google-ads-tag" strategy="afterInteractive">
           {`
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}
             gtag('js', new Date());
-            gtag('config', 'AW-10796225601');
+            gtag('config', 'AW-10796225601', { page_location: window.__dsLandingUrl || window.location.href });
           `}
-        </Script>
+        </Script>}
 
       </head>
       
       <body className="antialiased bg-[#0B0C10] text-white min-h-screen flex flex-col font-sans">
         {/* Só roda o CleanUrl em produção */}
+        <PageAnalytics />
         {!isDev && <CleanUrl />}
         
         <Header />

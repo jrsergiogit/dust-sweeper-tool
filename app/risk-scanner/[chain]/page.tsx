@@ -41,7 +41,7 @@ export default async function Page({ params }: { params: Promise<{ chain: string
           {text} This page covers one of the networks currently checked by the Scam Contract Scanner. Dust Finder balance discovery is separate, while swap, bridge, and supported recovery routes are handled through LI.FI.
         </p>
         
-        <a href="/" 
+        <a href="/?tool=safety#tools" 
            className="inline-block px-12 py-5 text-sm font-black text-white transition-all rounded-xl shadow-2xl transform hover:scale-105 active:scale-95 uppercase tracking-widest"
            style={{ background: 'linear-gradient(90deg, #E91E63 0%, #9C27B0 100%)' }}>
           Check {displayTitle} Risk

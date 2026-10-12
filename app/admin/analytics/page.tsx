@@ -113,8 +113,8 @@ function DailyChart({ rows }: { rows: DailyRow[] }) {
     <div className="overflow-x-auto pb-2">
       <div className="flex min-w-[720px] items-end gap-2 pt-8">
         {recent.map((row) => {
-          const height = Math.max(6, Math.round((row.sessions / max) * 180));
-          const recoveryHeight = row.sessions
+          const height = row.sessions > 0 ? Math.max(6, Math.round((row.sessions / max) * 180)) : 0;
+          const recoveryHeight = row.sessions > 0 && row.recovery_completed > 0
             ? Math.max(2, Math.round((row.recovery_completed / row.sessions) * height))
             : 0;
           return (

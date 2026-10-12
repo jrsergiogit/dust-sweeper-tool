@@ -1,109 +1,32 @@
-"use client";
-
-import Image from "next/image";
-import Link from "next/link";
-import { useState } from "react";
+'use client';
+import Image from 'next/image';
+import Link from 'next/link';
+import { useState } from 'react';
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-
   const menuItems = [
-    { name: "Learn", href: "/learn" },
-    { name: "FAQ", href: "/faq" },
-    { name: "Security", href: "/security" },
-    { name: "Terms", href: "/terms" },
-    { name: "Privacy", href: "/privacy" },
+    { name: 'Learn', href: '/learn' }, { name: 'FAQ', href: '/faq' },
+    { name: 'Security', href: '/security' }, { name: 'Terms', href: '/terms' },
+    { name: 'Privacy', href: '/privacy' },
   ];
-
   return (
-    <nav className="sticky top-0 z-50 w-full border-b border-white/10 bg-black">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-
-        <div className="flex h-36 items-center justify-between">
-
-          {/* LOGO + TITULO + SUBTITULO */}
-          <div className="flex flex-col">
-
-            <Link
-              href="/"
-              className="flex items-center gap-4 transition-opacity hover:opacity-80"
-            >
-              <Image
-                src="/logo.png"
-                alt="Dust Sweeper Tool"
-                width={260}
-                height={70}
-                priority
-                className="h-22 w-auto"
-              />
-
-              <span className="text-2xl font-bold tracking-tight text-white">
-                Dust Sweeper Tool
-              </span>
-            </Link>
-
-            {/* SUBTITULO */}
-            <span className="text-[13px] text-gray-300 mt-1 pl-[105px]">
-              Find forgotten funds. Analyze wallets. Bridge, Swap and Scan tokens.
-            </span>
-
+    <header className="sticky top-0 z-50 w-full border-b border-white/10 bg-[#08090e]/95 backdrop-blur-lg">
+      <nav aria-label="Main navigation" className="mx-auto max-w-[1380px] px-4 sm:px-6 lg:px-8">
+        <div className="flex h-16 items-center justify-between gap-3 sm:h-20">
+          <Link href="/" className="flex min-w-0 items-center gap-2.5 text-white">
+            <Image src="/logo.png" alt="" width={44} height={44} priority className="h-11 w-11 shrink-0 object-contain" />
+            <div className="min-w-0"><p className="truncate text-base font-bold sm:text-lg">Dust Sweeper Tool</p><p className="hidden text-xs text-gray-400 sm:block">Find forgotten funds. Analyze wallets. Bridge, Swap and Scan tokens.</p></div>
+          </Link>
+          <div className="hidden items-center gap-5 md:flex">
+            {menuItems.map(item => <Link key={item.name} href={item.href} className="inline-flex min-h-11 items-center text-sm text-gray-300 hover:text-white">{item.name}</Link>)}
           </div>
-
-          {/* MENU DESKTOP */}
-          <div className="hidden md:block">
-            <div className="ml-10 flex items-center space-x-8 text-white">
-              {menuItems.map((item) => (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  className="text-sm font-medium text-gray-400 transition-colors hover:text-white"
-                >
-                  {item.name}
-                </Link>
-              ))}
-            </div>
-          </div>
-
-          {/* BOTÃO MOBILE */}
-          <div className="flex md:hidden">
-            <button
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="inline-flex items-center justify-center rounded-md p-2 text-gray-400 hover:bg-gray-800 hover:text-white transition-colors"
-            >
-              <span className="sr-only">Open main menu</span>
-
-              {isMenuOpen ? (
-                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              ) : (
-                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16m-7 6h7" />
-                </svg>
-              )}
-            </button>
-          </div>
-
+          <button type="button" aria-label={isMenuOpen ? 'Close menu' : 'Open menu'} aria-expanded={isMenuOpen} aria-controls="mobile-navigation" onClick={() => setIsMenuOpen(!isMenuOpen)} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-white/15 text-gray-200 md:hidden">
+            <svg aria-hidden="true" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" d={isMenuOpen ? 'M6 6l12 12M6 18L18 6' : 'M4 6h16M4 12h16M4 18h16'} /></svg>
+          </button>
         </div>
-      </div>
-
-      {/* MENU MOBILE */}
-      {isMenuOpen && (
-        <div className="md:hidden border-t border-white/10 bg-black animate-in fade-in slide-in-from-top-2">
-          <div className="space-y-1 px-4 pb-6 pt-4">
-            {menuItems.map((item) => (
-              <Link
-                key={item.name}
-                href={item.href}
-                onClick={() => setIsMenuOpen(false)}
-                className="block rounded-md py-4 text-base font-medium text-gray-300 hover:text-white"
-              >
-                {item.name}
-              </Link>
-            ))}
-          </div>
-        </div>
-      )}
-    </nav>
+        {isMenuOpen && <div id="mobile-navigation" className="grid grid-cols-2 gap-2 border-t border-white/10 py-3 md:hidden">{menuItems.map(item => <Link key={item.name} href={item.href} onClick={() => setIsMenuOpen(false)} className="flex min-h-11 items-center rounded-lg px-3 text-sm text-gray-200 hover:bg-white/10">{item.name}</Link>)}</div>}
+      </nav>
+    </header>
   );
 }
