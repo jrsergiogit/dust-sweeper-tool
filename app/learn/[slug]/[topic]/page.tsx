@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { chains, topics, chainMap, getChainProfile } from "../../data";
+import { chains, topics, chainMap, getChainProfile, isIndexableChainTopic } from "../../data";
 import {
   pageTitle, pageDescription, steps, ecosystemFrame, routeFrame, orderedFocus,
   familyNote, angleOf, relatedTopics, otherChains, categoryOf, quoteFor, bridgeNote,
@@ -26,6 +26,8 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     description,
     keywords: [chainName, item[1].toLowerCase(), "crypto dust", "wallet security", "bridge", "web3"],
     alternates: { canonical: url },
+    // Long-tail chain x topic combinations stay usable but out of the index.
+    robots: isIndexableChainTopic(chain, topic) ? undefined : { index: false, follow: true },
     openGraph: {
       title, description, url, type: "article",
       images: [{ url: "/og-image.png", width: 1200, height: 630 }],

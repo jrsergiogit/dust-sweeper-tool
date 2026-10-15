@@ -6,9 +6,9 @@ import { useState } from 'react';
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuItems = [
-    { name: 'Learn', href: '/learn' }, { name: 'FAQ', href: '/faq' },
-    { name: 'Security', href: '/security' }, { name: 'Terms', href: '/terms' },
-    { name: 'Privacy', href: '/privacy' },
+    { name: 'Learn', href: '/learn' }, { name: 'Blog', href: '/blog' },
+    { name: 'Bridge', href: '/bridge' }, { name: 'Tokens', href: '/tokens' },
+    { name: 'FAQ', href: '/faq' }, { name: 'Security', href: '/security' },
   ];
   return (
     <header className="sticky top-0 z-50 w-full border-b border-white/10 bg-[#08090e]/95 backdrop-blur-lg">

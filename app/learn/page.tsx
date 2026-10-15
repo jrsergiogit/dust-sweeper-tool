@@ -1,9 +1,10 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { topics, chains } from "./data";
+import { INTENTS } from "../lib/seo-intents";
 
 export const metadata: Metadata = {
-  title: "Learn | Web3 Wallet Security, Dust & Cross-Chain Guides | Dust Sweeper",
+  title: "Web3 Wallet Security, Crypto Dust & Bridge Guides | Dust Sweeper",
   description: "Practical guides about crypto dust, wallet security, token risk, swaps, bridges, gas fees and multi-chain asset recovery.",
   alternates: { canonical: "https://dustsweepertool.com/learn" },
 };
@@ -20,6 +21,12 @@ export default function LearnPage() {
         <section className="mb-14">
           <div className="flex items-end justify-between gap-4 mb-5"><div><div className="text-pink-500 font-bold text-xs uppercase tracking-[0.25em] mb-2">Explore by network</div><h2 className="text-2xl md:text-3xl font-black">Network intelligence</h2></div><Link href="/learn/network" className="text-xs font-black tracking-widest text-gray-500 hover:text-white">VIEW ALL →</Link></div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">{chains.slice(0, 8).map(([slug,name]) => <Link key={slug} href={`/learn/network/${slug}`} className="border border-white/5 bg-[#030303] rounded-2xl p-5 hover:border-white/20 transition-colors"><div className="font-bold">{name}</div><div className="text-xs text-gray-500 mt-2">Wallet, dust & bridge guide</div></Link>)}</div>
+        </section>
+        <section className="mb-14">
+          <div className="text-pink-500 font-bold text-xs uppercase tracking-[0.25em] mb-2">Popular guides</div>
+          <h2 className="text-2xl md:text-3xl font-black mb-5">Start here</h2>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">{Object.entries(INTENTS).slice(0, 12).map(([slug, d]) => <Link key={slug} href={`/${slug}`} className="border border-white/5 bg-[#030303] rounded-2xl p-5 hover:border-white/20 transition-colors text-sm font-bold">{d.title}</Link>)}</div>
+          <div className="mt-4 flex flex-wrap gap-5 text-sm"><Link href="/tokens" className="text-pink-400 hover:text-white">Token dust guides →</Link><Link href="/bridge" className="text-pink-400 hover:text-white">Bridge route guides →</Link></div>
         </section>
         <section className="mb-10 border border-white/5 bg-[#030303] p-6 rounded-3xl">
           <div className="flex items-center justify-between gap-4">

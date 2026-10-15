@@ -314,3 +314,46 @@ export function getRouteIntelligence(from: string, to: string): RouteIntelligenc
   };
 }
 
+
+/* ------------------------------------------------------------------ *
+ * SEO indexing policy
+ * Google was "discovering" 1,300+ near-identical URLs and indexing only 18.
+ * Only pages with real, distinct value go in the sitemap and stay indexable;
+ * the long tail keeps working for users but is marked noindex,follow.
+ * ------------------------------------------------------------------ */
+
+// The 7 networks Dust Finder really scans.
+export const SCAN_CHAIN_SLUGS = ['ethereum', 'bsc', 'polygon', 'arbitrum', 'base', 'optimism', 'avalanche'] as const;
+
+// Network hub pages that are indexable (scanned networks + Solana, a high-demand non-EVM chain).
+export const INDEXED_NETWORK_HUBS: readonly string[] = [...SCAN_CHAIN_SLUGS, 'solana'];
+
+// Evergreen topics worth a per-network page.
+export const PRIORITY_TOPICS = [
+  'what-is-crypto-dust',
+  'how-to-find-forgotten-tokens',
+  'token-approvals',
+  'revoke-wallet-permissions',
+  'honeypot-tokens',
+  'how-to-save-on-gas',
+  'dust-vs-spam-tokens',
+  'small-balance-economics',
+] as const;
+
+export function isIndexableChainTopic(chain: string, topic: string): boolean {
+  return (SCAN_CHAIN_SLUGS as readonly string[]).includes(chain) && (PRIORITY_TOPICS as readonly string[]).includes(topic);
+}
+
+export const PRIORITY_BRIDGE_SLUGS: readonly string[] = [
+  'ethereum-to-base', 'ethereum-to-arbitrum', 'ethereum-to-polygon', 'ethereum-to-optimism', 'ethereum-to-avalanche', 'ethereum-to-bsc',
+  'base-to-arbitrum', 'base-to-polygon', 'base-to-optimism', 'base-to-ethereum',
+  'arbitrum-to-base', 'arbitrum-to-polygon', 'arbitrum-to-ethereum',
+  'polygon-to-base', 'polygon-to-arbitrum',
+  'bsc-to-base', 'bsc-to-ethereum',
+  'optimism-to-base', 'optimism-to-arbitrum',
+  'avalanche-to-arbitrum',
+];
+
+export function isIndexableBridge(slug: string): boolean {
+  return PRIORITY_BRIDGE_SLUGS.includes(slug);
+}

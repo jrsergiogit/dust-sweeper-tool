@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { topics, chains, topicAngles } from "../data";
+import { topics, chains, topicAngles, SCAN_CHAIN_SLUGS, chainMap, isIndexableChainTopic } from "../data";
+import { breadcrumbLd, LAST_UPDATED } from "../../lib/seo";
 
 export const dynamicParams = false;
 
@@ -48,9 +49,14 @@ export default async function LearnArticle({ params }: { params: Promise<{ slug:
         "author":{"@type":"Organization","name":"Dust Sweeper Team"},
         "publisher":{"@type":"Organization","name":"Dust Sweeper"},
         "mainEntityOfPage":{"@type":"WebPage","@id":`https://dustsweepertool.com/learn/${slug}`},
+        "dateModified":LAST_UPDATED,
         "image":"https://dustsweepertool.com/og-image.png"
       }) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd([{name:"Home",path:"/"},{name:"Learn",path:"/learn"},{name:title,path:`/learn/${slug}`}])) }} />
       <article className="max-w-3xl mx-auto border border-white/5 bg-[#030303] p-8 md:p-16 rounded-3xl shadow-2xl">
+        <nav aria-label="Breadcrumb" className="text-xs text-gray-500 mb-8 flex flex-wrap gap-x-2">
+          <Link href="/" className="hover:text-white">Home</Link><span>/</span><Link href="/learn" className="hover:text-white">Learn</Link>
+        </nav>
         <header className="mb-12">
           <div className="text-pink-500 font-bold text-xs uppercase tracking-[0.3em] mb-4">Learn • Web3 Guide • 2026</div>
           <h1 className="text-4xl md:text-6xl font-black leading-tight mb-6">{title}</h1>
@@ -87,7 +93,7 @@ export default async function LearnArticle({ params }: { params: Promise<{ slug:
           <h2 className="text-2xl font-bold text-white uppercase tracking-wider">Explore by Network</h2>
           <p>Go deeper with network-specific pages that combine wallet context, asset considerations, security checks and related bridge routes.</p>
           <div className="grid sm:grid-cols-2 gap-3">
-            {chains.slice(0, 6).map(([chain, name]) => <Link key={chain} href={`/learn/network/${chain}`} className="border border-white/10 rounded-xl px-4 py-3 text-sm text-gray-300 hover:text-white hover:border-white/25 transition-colors">{name} network guide →</Link>)}
+            {SCAN_CHAIN_SLUGS.map((chain) => <Link key={chain} href={isIndexableChainTopic(chain, slug) ? `/learn/${chain}/${slug}` : `/learn/network/${chain}`} className="border border-white/10 rounded-xl px-4 py-3 text-sm text-gray-300 hover:text-white hover:border-white/25 transition-colors">{isIndexableChainTopic(chain, slug) ? `${title} on ${chainMap[chain]}` : `${chainMap[chain]} network guide`} →</Link>)}
           </div>
           <h2 className="text-2xl font-bold text-white uppercase tracking-wider">Explore Bridge Routes</h2>
           <div className="grid sm:grid-cols-2 gap-3">

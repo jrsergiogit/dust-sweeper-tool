@@ -4,6 +4,7 @@ import CleanUrl from "./CleanUrl";
 import PageAnalytics from "./components/PageAnalytics";
 import { ATTRIBUTION_BOOTSTRAP } from "./lib/attribution-bootstrap";
 import Header from "./components/Header";
+import SiteFooter from "./components/SiteFooter";
 import Script from "next/script"; // Importante para as tags do Google
 
 export const metadata: Metadata = {
@@ -13,17 +14,26 @@ export const metadata: Metadata = {
     canonical: 'https://dustsweepertool.com',
   },
 
-  title: "Dust Sweeper Tool | Web3 Wallet Security & Recovery Toolkit",
-  description: "Dust Sweeper Tool is a non-custodial Web3 wallet toolkit for finding low-value crypto assets, viewing public wallet data, checking token contract risk signals, swapping tokens, and bridging assets.",
-  keywords: ["crypto dust", "wallet cleaner", "scam scanner", "forgotten funds", "web3 tool", "wallet security"],
-  
+  title: "Dust Sweeper Tool: Find Forgotten Crypto & Crypto Dust",
+  description: "Free non-custodial wallet scanner that finds small and forgotten token balances on 7 networks, checks contract risk signals and compares swap and bridge routes.",
+  applicationName: "Dust Sweeper Tool",
+  category: "finance",
+  robots: { index: true, follow: true, googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1, "max-video-preview": -1 } },
+
   openGraph: {
-    title: "Dust Sweeper Tool | Web3 Toolkit",
-    description: "Recover forgotten funds and scan your wallet for security risks.",
+    title: "Dust Sweeper Tool: Find Forgotten Crypto & Crypto Dust",
+    description: "Scan your public wallet address for forgotten and small token balances on 7 networks. Non-custodial, no seed phrase.",
     url: "https://dustsweepertool.com",
-    siteName: "DustSweeperTool",
-    images: [{ url: "/og-image.png", width: 1200, height: 630 }],
+    siteName: "Dust Sweeper Tool",
+    locale: "en_US",
+    images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "Dust Sweeper Tool" }],
     type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Dust Sweeper Tool: Find Forgotten Crypto & Crypto Dust",
+    description: "Scan your public wallet address for forgotten and small token balances on 7 networks. Non-custodial, no seed phrase.",
+    images: ["/og-image.png"],
   },
   icons: {
     icon: [{ url: "/favicon.ico?v=4" }],
@@ -65,6 +75,7 @@ export default function RootLayout({
                 "Token contract risk scanning",
                 "Token swaps",
                 "Cross-chain bridging",
+                "Scans Ethereum, BNB Smart Chain, Polygon, Arbitrum, Base, Optimism and Avalanche",
               ],
               provider: {
                 "@type": "Organization",
@@ -101,11 +112,7 @@ export default function RootLayout({
           {children}
         </main>
 
-        <footer className="w-full border-t border-white/5 bg-[#030303] py-8 flex flex-col items-center gap-4">
-          <p className="text-[9px] text-gray-700 uppercase tracking-[0.4em] text-center">
-            © 2026 Dust Sweeper Protocol • Powered by LI.FI & Alchemy
-          </p>
-        </footer>
+        <SiteFooter />
       </body>
     </html>
   );

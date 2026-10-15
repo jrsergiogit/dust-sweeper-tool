@@ -1,53 +1,109 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
-
-const TOKEN_DATA: Record<string, {name:string; chain:string; description:string}> = {
-  'shib-dust': {name:'SHIB',chain:'Ethereum',description:'Small SHIB balances can remain after swaps, transfers, or old wallet activity. This guide explains what to verify before treating SHIB dust as useful, uneconomical, or suspicious.'},
-  'pepe-dust': {name:'PEPE',chain:'Ethereum',description:'PEPE dust can accumulate after trading or transfers. Check the network, contract, current balance value, and transaction cost before deciding what to do with it.'},
-  'arb-dust': {name:'ARB',chain:'Arbitrum',description:'Small ARB balances are often left behind after transactions or portfolio activity on Arbitrum. Learn how to evaluate the balance against gas and route costs.'},
-  'matic-dust': {name:'MATIC',chain:'Polygon',description:'Legacy MATIC balances can appear in wallets after activity on Polygon. Verify the network and asset representation before moving a small balance.'},
-  'pol-dust': {name:'POL',chain:'Polygon',description:'Small POL balances may remain after Polygon activity. This guide covers the checks that matter before consolidation.'},
-  'uni-dust': {name:'UNI',chain:'Ethereum',description:'Tiny UNI balances can be difficult to justify moving when transaction costs are high. Compare the balance value with the complete cost of the route.'},
-  'xrp-dust': {name:'XRP',chain:'XRP Ledger',description:'Small XRP balances need network-specific checks because XRP Ledger account rules differ from EVM wallets. Verify the account and asset before acting.'},
-  'bonk-dust': {name:'BONK',chain:'Solana',description:'BONK dust can appear after Solana swaps or transfers. Check the token account, authenticity, and practical value before interacting with it.'},
-  'doge-dust': {name:'DOGE',chain:'Dogecoin',description:'Small DOGE balances should be evaluated against network fees and the intended destination before attempting consolidation.'},
-  'floki-dust': {name:'FLOKI',chain:'Ethereum / BNB Smart Chain',description:'FLOKI exists across networks, so a small balance should be verified by chain and contract before any transaction.'},
-  'jup-dust': {name:'JUP',chain:'Solana',description:'Small JUP balances on Solana should be checked against the correct token account and current transaction economics.'},
-  'wif-dust': {name:'WIF',chain:'Solana',description:'WIF dust can be leftover from trading activity. Verify the token account and contract before considering a cleanup transaction.'},
-  'aave-dust': {name:'AAVE',chain:'Ethereum and supported networks',description:'AAVE can exist on multiple networks. The chain and exact token contract matter when evaluating a small leftover balance.'},
-  'link-dust': {name:'LINK',chain:'Ethereum and supported networks',description:'Small LINK balances should be checked by network and contract before deciding whether consolidation makes economic sense.'},
-  'avax-dust': {name:'AVAX',chain:'Avalanche',description:'Small AVAX balances can be useful for gas but may also be leftover portfolio dust. Check network, balance value, and intended use.'},
-  'op-dust': {name:'OP',chain:'Optimism',description:'Small OP balances on Optimism should be evaluated with network fees and the purpose of the remaining balance in mind.'},
-  'cake-dust': {name:'CAKE',chain:'BNB Smart Chain',description:'CAKE dust may remain after PancakeSwap activity. Verify the network and token contract before interacting with the balance.'},
-  'crv-dust': {name:'CRV',chain:'Ethereum and supported networks',description:'Small CRV balances can be spread across networks. Confirm the chain and contract before consolidation.'},
-  'comp-dust': {name:'COMP',chain:'Ethereum and supported networks',description:'COMP dust should be evaluated by network, contract, balance value, and transaction cost.'},
-  'snx-dust': {name:'SNX',chain:'Ethereum and supported networks',description:'Small SNX balances may be leftover from older DeFi activity. Verify the asset before deciding whether to move it.'},
-  'sushi-dust': {name:'SUSHI',chain:'Ethereum and supported networks',description:'SUSHI can exist on multiple networks. Small balances should be checked for the correct chain and contract.'},
-  'ena-dust': {name:'ENA',chain:'Ethereum and supported networks',description:'Small ENA balances should be evaluated against the correct network, contract, and current transaction economics.'},
-  'ondo-dust': {name:'ONDO',chain:'Ethereum and supported networks',description:'ONDO dust should be verified by chain and token contract before any attempt to consolidate it.'},
-  'tia-dust': {name:'TIA',chain:'Celestia',description:'Small TIA balances require network-specific checks. Confirm the address, network, balance, and destination before sending.'},
-  'sei-dust': {name:'SEI',chain:'Sei',description:'Small SEI balances can remain after transactions. Check the network and transaction economics before moving them.'},
-  'sui-dust': {name:'SUI',chain:'Sui',description:'SUI dust is network-specific. Confirm the wallet, network, balance, and intended destination before acting.'},
-  'apt-dust': {name:'APT',chain:'Aptos',description:'Small APT balances should be evaluated against network costs and the purpose of keeping the remaining balance.'},
-  'inj-dust': {name:'INJ',chain:'Injective',description:'Small INJ balances require network-specific verification before consolidation or transfer.'},
-  'near-dust': {name:'NEAR',chain:'NEAR',description:'Small NEAR balances should be checked against account and transaction requirements before being moved.'},
-  'cro-dust': {name:'CRO',chain:'Cronos',description:'Small CRO balances can be leftover from Cronos activity. Verify the network and cost before deciding whether to consolidate them.'},
-}
+import JsonLd from '../../components/JsonLd'
+import DustCostCalculator from '../../components/DustCostCalculator'
+import { TOKEN_DATA, isScanned, TOKEN_HOME_CHAIN } from '../token-data'
+import { SITE_URL, articleLd, breadcrumbLd, faqLd, type Faq } from '../../lib/seo'
 
 export const dynamicParams = false
-export function generateStaticParams() { return Object.keys(TOKEN_DATA).map(token => ({token})) }
+export function generateStaticParams() { return Object.keys(TOKEN_DATA).map((token) => ({ token })) }
 
-export async function generateMetadata({params}:{params:Promise<{token:string}>}):Promise<Metadata>{
-  const {token}=await params; const data=TOKEN_DATA[token]; if(!data)return {}
-  const title=`${data.name} Dust: What to Do With Small ${data.name} Balances | Dust Sweeper`
-  return {title,description:data.description,keywords:[`${data.name} dust`,`${data.name} small balance`,'crypto dust','small crypto balance','wallet cleanup'],alternates:{canonical:`https://dustsweepertool.com/tokens/${token}`},openGraph:{title,description:data.description,url:`https://dustsweepertool.com/tokens/${token}`,type:'article'}}
+export async function generateMetadata({ params }: { params: Promise<{ token: string }> }): Promise<Metadata> {
+  const { token } = await params
+  const d = TOKEN_DATA[token]
+  if (!d) return {}
+  const title = `${d.name} Dust: What to Do With Small ${d.name} Balances`
+  const url = `${SITE_URL}/tokens/${token}`
+  return {
+    title,
+    description: d.description,
+    alternates: { canonical: url },
+    openGraph: { title, description: d.description, url, type: 'article', images: [{ url: '/og-image.png', width: 1200, height: 630 }] },
+    twitter: { card: 'summary_large_image', title, description: d.description, images: ['/og-image.png'] },
+  }
 }
 
-export default async function TokenPage({params}:{params:Promise<{token:string}>}){
-  const {token}=await params; const data=TOKEN_DATA[token]; if(!data)return null
-  return <main className="bg-[#0B0C10] text-white min-h-screen py-20 px-6"><article className="max-w-3xl mx-auto border border-white/5 bg-[#030303] p-8 md:p-16 rounded-3xl shadow-2xl">
-    <script type="application/ld+json" dangerouslySetInnerHTML={{__html:JSON.stringify({'@context':'https://schema.org','@type':'Article','headline':`${data.name} Dust: Small ${data.name} Balances`,'description':data.description,'author':{'@type':'Organization','name':'Dust Sweeper Team'},'mainEntityOfPage':{'@type':'WebPage','@id':`https://dustsweepertool.com/tokens/${token}`}})}} />
-    <div className="text-pink-500 font-bold text-xs uppercase tracking-[0.3em] mb-4">Token Guide • {data.chain}</div><h1 className="text-4xl md:text-6xl font-black leading-tight mb-6">{data.name} Dust</h1><p className="text-xl text-gray-400 italic font-light">{data.description}</p>
-    <section className="space-y-8 text-gray-300 leading-relaxed text-lg mt-12"><h2 className="text-2xl font-bold text-white uppercase tracking-wider">What Is {data.name} Dust?</h2><p>A small {data.name} balance is not automatically worthless or dangerous. It may be the remainder of a swap, transfer, reward, or older position. The first question is where the asset lives and whether the token contract is the one you intended to hold.</p><h2 className="text-2xl font-bold text-white uppercase tracking-wider">Before Moving a Small Balance</h2><ul className="list-disc pl-6 space-y-4 text-gray-400"><li>Confirm the wallet address and <strong>{data.chain}</strong> network.</li><li>Verify the exact token contract instead of relying only on the ticker or logo.</li><li>Compare the balance value with gas, bridge, swap, and other route costs.</li><li>Check whether the asset is liquid and actually transferable.</li><li>Never enter a seed phrase or private key into a scanner or cleanup tool.</li></ul><div className="bg-white/5 border-l-4 border-pink-500 p-6 italic">The goal is not to move every tiny balance. It is to determine which balances are safe and economical to consolidate.</div><h2 className="text-2xl font-bold text-white uppercase tracking-wider">Scan Your Wallet</h2><p>Dust Sweeper can help you inventory wallet activity and identify small balances that deserve a closer look. Review the asset and route before signing any transaction.</p><Link href="/" className="inline-block px-10 py-4 text-sm font-black rounded-xl" style={{background:'linear-gradient(90deg, #E91E63 0%, #9C27B0 100%)'}}>SCAN YOUR WALLET</Link><p><Link href="/tokens" className="text-pink-400 hover:text-pink-300">← Explore more token dust guides</Link></p></section>
-  </article></main>
+export default async function TokenPage({ params }: { params: Promise<{ token: string }> }) {
+  const { token } = await params
+  const d = TOKEN_DATA[token]
+  if (!d) return null
+  const path = `/tokens/${token}`
+  const scanned = isScanned(token)
+  const homeChain = TOKEN_HOME_CHAIN[d.chain]
+  const sameChain = Object.entries(TOKEN_DATA).filter(([s, t]) => s !== token && t.chain === d.chain).slice(0, 4)
+  const others = Object.entries(TOKEN_DATA).filter(([s]) => s !== token).slice(0, 4)
+  const related = sameChain.length >= 2 ? sameChain : others
+
+  const faq: Faq[] = [
+    [`Is a small ${d.name} balance worth moving?`, `Only if the amount you would receive after network fees, route fees and price impact is clearly positive. Small ${d.name} balances often are not worth moving on a high-fee network, so compare a live quote with the balance value first.`],
+    [`Can Dust Sweeper find my ${d.name} dust?`, scanned
+      ? `${d.name} on ${d.chain} falls within the networks Dust Finder reads today, so a scan of your public address can show the balance if you hold it there. Verify the contract before acting.`
+      : `Dust Finder reads seven EVM networks (Ethereum, BNB Smart Chain, Polygon, Arbitrum, Base, Optimism and Avalanche). ${d.name} on ${d.chain} is not scanned, so use this guide to evaluate the balance and check it in a tool built for ${d.chain}.`],
+    [`How do I verify the ${d.name} token before touching it?`, `Find the official contract or asset identifier from the project’s own channels, open it on the network’s block explorer, and confirm it matches what your wallet holds. Never rely on the ticker or the logo alone.`],
+  ]
+
+  return (
+    <main className="bg-[#0B0C10] text-white min-h-screen py-20 px-6">
+      <JsonLd data={[
+        articleLd({ title: `${d.name} Dust: Small ${d.name} Balances`, description: d.description, path }),
+        breadcrumbLd([{ name: 'Home', path: '/' }, { name: 'Token guides', path: '/tokens' }, { name: `${d.name} dust`, path }]),
+        faqLd(faq),
+      ]} />
+      <article className="max-w-3xl mx-auto border border-white/5 bg-[#030303] p-8 md:p-16 rounded-3xl shadow-2xl">
+        <nav aria-label="Breadcrumb" className="text-xs text-gray-500 mb-8 flex flex-wrap gap-x-2">
+          <Link href="/" className="hover:text-white">Home</Link><span>/</span>
+          <Link href="/tokens" className="hover:text-white">Token guides</Link>
+        </nav>
+        <div className="text-pink-500 font-bold text-xs uppercase tracking-[0.3em] mb-4">Token Guide • {d.chain}</div>
+        <h1 className="text-4xl md:text-6xl font-black leading-tight mb-6">{d.name} Dust</h1>
+        <p className="text-xl text-gray-400 italic font-light">{d.description}</p>
+
+        <div className="mt-10 rounded-2xl border border-pink-500/30 bg-pink-500/5 p-6">
+          <div className="text-xs font-bold uppercase tracking-widest text-pink-400 mb-2">Quick answer</div>
+          <p className="text-gray-200 leading-relaxed">Small {d.name} dust is worth moving only when its value minus fees and price impact is clearly positive and the token contract is the genuine one. Otherwise leave it where it is.</p>
+        </div>
+
+        <section className="space-y-8 text-gray-300 leading-relaxed text-lg mt-12">
+          <h2 className="text-2xl font-bold text-white uppercase tracking-wider">What Is {d.name} Dust?</h2>
+          <p>A small {d.name} balance is not automatically worthless or dangerous. It may be the remainder of a swap, transfer, reward or older position. The first question is where the asset lives ({d.chain}) and whether the token is the one you intended to hold.</p>
+
+          <h2 className="text-2xl font-bold text-white uppercase tracking-wider">Before Moving a Small Balance</h2>
+          <ul className="list-disc pl-6 space-y-4 text-gray-400">
+            <li>Confirm the wallet address and the <strong className="text-gray-200">{d.chain}</strong> network.</li>
+            <li>Verify the exact token contract or asset identifier instead of relying on the ticker or logo.</li>
+            <li>Compare the balance value with gas, bridge, swap and other route costs.</li>
+            <li>Check whether the asset is liquid and actually transferable.</li>
+            <li>Never enter a seed phrase or private key into a scanner or cleanup tool.</li>
+          </ul>
+
+          <DustCostCalculator />
+
+          <div className="bg-white/5 border-l-4 border-pink-500 p-6 italic">The goal is not to move every tiny balance. It is to determine which balances are safe and economical to consolidate.</div>
+
+          <h2 className="text-2xl font-bold text-white uppercase tracking-wider">Frequently Asked Questions</h2>
+          <div className="space-y-6">
+            {faq.map(([q, a]) => (
+              <div key={q}><h3 className="text-xl font-bold text-white mb-2">{q}</h3><p className="text-gray-400">{a}</p></div>
+            ))}
+          </div>
+
+          <h2 className="text-2xl font-bold text-white uppercase tracking-wider">Scan Your Wallet</h2>
+          <p>Dust Sweeper reads your public address, lists small balances on the networks it supports, and lets you compare routes before you sign. Review the asset and route carefully before approving any transaction.</p>
+          <Link href="/?tool=finder" className="inline-block px-10 py-4 text-sm font-black rounded-xl" style={{ background: 'linear-gradient(90deg, #E91E63 0%, #9C27B0 100%)' }}>SCAN YOUR WALLET</Link>
+
+          <h2 className="text-2xl font-bold text-white uppercase tracking-wider">Related Guides</h2>
+          <div className="grid sm:grid-cols-2 gap-3">
+            {related.map(([s, t]) => (
+              <Link key={s} href={`/tokens/${s}`} className="border border-white/10 rounded-xl px-4 py-3 text-sm text-gray-300 hover:text-white hover:border-white/25">{t.name} dust ({t.chain}) →</Link>
+            ))}
+          </div>
+          <div className="flex flex-wrap gap-x-5 gap-y-2 text-sm">
+            {homeChain && <Link href={`/dust-recovery/${homeChain}`} className="text-pink-400 hover:text-white">{d.chain} dust recovery →</Link>}
+            <Link href="/small-crypto-balance" className="text-pink-400 hover:text-white">Is a small balance worth moving? →</Link>
+            <Link href="/tokens" className="text-pink-400 hover:text-white">All token guides →</Link>
+          </div>
+        </section>
+      </article>
+    </main>
+  )
 }

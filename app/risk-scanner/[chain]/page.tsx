@@ -1,65 +1,74 @@
-import { Metadata } from 'next';
+import type { Metadata } from 'next';
+import Link from 'next/link';
+import JsonLd from '../../components/JsonLd';
+import { chainMap, getChainProfile } from '../../learn/data';
+import { SITE_URL, breadcrumbLd, faqLd, type Faq } from '../../lib/seo';
 
-const descriptions: Record<string, string> = {
-  ethereum: "Review Ethereum token-security signals and contract data. The risk scanner is separate from Dust Finder balance discovery.",
-  polygon: "Review token-security signals for assets on Polygon. Dust Finder balance discovery and LI.FI execution are separate tools.",
-  bsc: "Review token-security signals for BEP-20 contracts on BNB Chain. Dust Finder balance discovery and LI.FI recovery are separate steps.",
-  arbitrum: "Review token-security signals for contracts on Arbitrum. Dust Finder balance discovery is separate from this risk check.",
-  base: "Review token-security signals for contracts on Base. Dust Finder balance discovery is separate from this risk check.",
-  default: "Review supported wallet data and token-security signals for supported networks. Dust Finder balance discovery is separate from this risk check."
-};
+const CHAINS = ['ethereum', 'polygon', 'bsc', 'arbitrum', 'base', 'optimism'] as const;
+
+export const dynamicParams = false;
+export async function generateStaticParams() { return CHAINS.map((c) => ({ chain: c })); }
 
 export async function generateMetadata({ params }: { params: Promise<{ chain: string }> }): Promise<Metadata> {
   const { chain } = await params;
-  const name = chain.charAt(0).toUpperCase() + chain.slice(1);
-  return {
-    alternates: { canonical: `https://dustsweepertool.com/risk-scanner/${chain}` },
-    title: `Token Risk Scanner: ${name} | Dust Sweeper`,
-    description: `Review token-security signals for ${name}. Dust Finder balance discovery and LI.FI swap, bridge, and recovery execution are separate tools.`,
-  };
+  const name = chainMap[chain];
+  if (!name) return {};
+  const url = `${SITE_URL}/risk-scanner/${chain}`;
+  const title = `${name} Token Risk Scanner: Check a Contract Before You Trade`;
+  const description = `Check ${name} token contract risk signals such as honeypot behaviour, sell restrictions and ownership permissions. Automated heuristics, not a guarantee.`;
+  return { title, description, alternates: { canonical: url }, openGraph: { title, description, url, type: 'website', images: [{ url: '/og-image.png', width: 1200, height: 630 }] } };
 }
 
 export default async function Page({ params }: { params: Promise<{ chain: string }> }) {
   const { chain } = await params;
-  const chainName = chain.toLowerCase();
-  const displayTitle = chain.toUpperCase();
-  const text = descriptions[chainName] || descriptions.default;
-
+  const name = chainMap[chain];
+  if (!name) return null;
+  const path = `/risk-scanner/${chain}`;
+  const p = getChainProfile(chain);
+  const faq: Faq[] = [
+    [`How do I check if a ${name} token is a scam?`, `Open the token contract on the ${name} block explorer, review holders, liquidity and verified source code, and run an automated risk scan for common patterns such as honeypot behaviour or high sell taxes. Treat the result as one input, not proof.`],
+    [`What is a honeypot token on ${name}?`, `A token whose contract lets you buy but blocks or heavily taxes selling. Automated scanners flag common patterns, but novel scams can slip through.`],
+    [`Does a clean result mean the token is safe?`, `No. Scanners rely on heuristics and can produce false positives or miss new patterns. Combine the scan with your own research.`],
+  ];
   return (
-    <div className="flex flex-col items-center justify-center min-h-[85vh] bg-[#0B0C10] text-white p-6">
-      <div className="w-full max-w-4xl p-10 bg-[#030303] rounded-3xl border border-white/5 backdrop-blur-sm text-center">
-        
-        <div className="inline-block px-4 py-1 mb-8 text-[10px] font-bold tracking-[0.3em] text-gray-500 uppercase border border-white/10 bg-white/5 rounded-full">
-          6 NETWORKS CURRENTLY CHECKED
+    <main className="bg-[#0B0C10] text-white min-h-screen py-20 px-6">
+      <JsonLd data={[breadcrumbLd([{ name: 'Home', path: '/' }, { name: 'Risk scanner', path: '/learn/token-contract-risk' }, { name, path }]), faqLd(faq)]} />
+      <div className="max-w-4xl mx-auto border border-white/5 bg-[#030303] p-8 md:p-14 rounded-3xl">
+        <nav aria-label="Breadcrumb" className="text-xs text-gray-500 mb-8 flex flex-wrap gap-x-2">
+          <Link href="/" className="hover:text-white">Home</Link><span>/</span>
+          <Link href={`/learn/network/${chain}`} className="hover:text-white">{name} guide</Link>
+        </nav>
+        <div className="inline-block px-4 py-1 mb-6 text-[10px] font-bold tracking-[0.3em] text-gray-400 uppercase border border-white/10 bg-white/5 rounded-full">Token risk • {p.role}</div>
+        <h1 className="mb-6 text-4xl font-extrabold tracking-tight lg:text-6xl leading-tight">{name} Token Risk Scanner</h1>
+        <p className="mb-8 text-xl text-gray-400 leading-relaxed">Review token-security signals for contracts on {name} before you buy, sell or approve anything. The scan is separate from Dust Finder balance discovery.</p>
+
+        <div className="mb-8 rounded-2xl border border-pink-500/30 bg-pink-500/5 p-6">
+          <div className="text-xs font-bold uppercase tracking-widest text-pink-400 mb-2">Quick answer</div>
+          <p className="text-gray-200">Paste a {name} token contract address into the scanner to see automated risk signals. Use it alongside a block explorer check, and never sign a transaction you do not understand.</p>
         </div>
-        
-        <h1 className="mb-8 text-4xl font-extrabold tracking-tight lg:text-6xl leading-tight">
-          Find Forgotten Tokens on <span className="text-blue-500">{displayTitle}</span>
-        </h1>
-        
-        <p className="mb-12 text-lg text-gray-400 leading-relaxed max-w-2xl mx-auto">
-          {text} This page covers one of the networks currently checked by the Scam Contract Scanner. Dust Finder balance discovery is separate, while swap, bridge, and supported recovery routes are handled through LI.FI.
-        </p>
-        
-        <a href="/?tool=safety#tools" 
-           className="inline-block px-12 py-5 text-sm font-black text-white transition-all rounded-xl shadow-2xl transform hover:scale-105 active:scale-95 uppercase tracking-widest"
-           style={{ background: 'linear-gradient(90deg, #E91E63 0%, #9C27B0 100%)' }}>
-          Check {displayTitle} Risk
-        </a>
-        
-        <div className="mt-10 grid grid-cols-3 gap-4 opacity-30 grayscale italic text-[10px] uppercase tracking-tighter">
-          <span>ETH Mainnet</span>
-          <span>Polygon PoS</span>
-          <span>Base L2</span>
+
+        <div className="space-y-6 text-gray-300 text-lg leading-relaxed">
+          <h2 className="text-2xl font-bold text-white">What to check on {name}</h2>
+          <p>{p.assetFocus}</p>
+          <ul className="list-disc pl-6 space-y-3 text-gray-400">
+            <li>Sell restrictions or very high transfer taxes (a honeypot pattern).</li>
+            <li>Owner permissions such as minting, pausing or blacklisting.</li>
+            <li>Liquidity depth and whether it is locked or controlled by one address.</li>
+            <li>Holder concentration and how recently the contract was created.</li>
+            <li>{p.securityFocus}</li>
+          </ul>
+          <h2 className="text-2xl font-bold text-white">Frequently asked questions</h2>
+          <div className="space-y-6">{faq.map(([q, a]) => <div key={q}><h3 className="text-xl font-bold text-white mb-2">{q}</h3><p className="text-gray-400">{a}</p></div>)}</div>
+          <Link href="/?tool=safety#tools" className="inline-block px-10 py-4 text-sm font-black rounded-xl text-white" style={{ background: 'linear-gradient(90deg, #E91E63 0%, #9C27B0 100%)' }}>CHECK A {name.toUpperCase()} CONTRACT</Link>
+          <h2 className="text-2xl font-bold text-white">Keep exploring</h2>
+          <div className="grid sm:grid-cols-2 gap-3 text-sm">
+            <Link href={`/dust-recovery/${chain}`} className="border border-white/10 rounded-xl px-4 py-3 text-gray-300 hover:text-white">{name} dust recovery →</Link>
+            <Link href="/learn/honeypot-tokens" className="border border-white/10 rounded-xl px-4 py-3 text-gray-300 hover:text-white">Honeypot tokens explained →</Link>
+            <Link href="/learn/token-contract-risk" className="border border-white/10 rounded-xl px-4 py-3 text-gray-300 hover:text-white">How to check token contract risk →</Link>
+            <Link href="/spam-tokens" className="border border-white/10 rounded-xl px-4 py-3 text-gray-300 hover:text-white">Spam tokens guide →</Link>
+          </div>
         </div>
       </div>
-    </div>
+    </main>
   );
-}
-
-export const dynamicParams = false;
-
-export async function generateStaticParams() {
-  const chains = ['ethereum', 'polygon', 'bsc', 'arbitrum', 'base', 'optimism'];
-  return chains.map((c) => ({ chain: c }));
 }

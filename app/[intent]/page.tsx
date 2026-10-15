@@ -1,36 +1,120 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
-
-const INTENTS: Record<string,{title:string;description:string;h2:string;body:string}> = {
-  'crypto-dust':{title:'Crypto Dust: What It Is and What to Do With It',description:'Learn what crypto dust is, why tiny balances accumulate, and how to decide whether a small balance is worth consolidating.',h2:'Why Crypto Dust Accumulates',body:'Crypto dust is the small leftover balance that can remain after swaps, transfers, rewards, airdrops, or old positions. A tiny balance is not automatically worthless: its practical value depends on the asset, network, liquidity, and cost of moving it.'},
-  'leftover-crypto':{title:'Leftover Crypto: How to Find and Clean Up Small Balances',description:'A practical guide to finding leftover crypto in wallets and deciding what is safe and economical to consolidate.',h2:'Start With a Wallet Inventory',body:'Leftover crypto is easy to miss when a wallet has been used across multiple networks. Review the networks an address has actually used, verify unfamiliar assets, and compare the balance with the full cost of moving it.'},
-  'small-crypto-balance':{title:'Small Crypto Balance: Is It Worth Moving?',description:'How to evaluate a small crypto balance against network fees, liquidity, and transaction costs.',h2:'Value Is More Than the Token Price',body:'A small crypto balance may have a market price but still be uneconomical to move. Compare its current value with gas, swap or bridge costs and the amount you expect to receive after the transaction.'},
-  'tiny-crypto-balance':{title:'Tiny Crypto Balance: What Can You Do With It?',description:'Understand tiny crypto balances, dust, fees, and practical wallet cleanup.',h2:'Do Not Move It Blindly',body:'Tiny balances deserve a cost and security check before any transaction. Confirm the network and token contract first, then determine whether a route actually makes economic sense.'},
-  'worthless-tokens':{title:'Worthless Tokens: How to Check Before You Ignore or Remove Them',description:'How to distinguish genuinely low-value tokens from suspicious or unsolicited wallet assets.',h2:'Worthless Does Not Mean Dangerous',body:'Some tokens have little or no practical liquidity, while others are unsolicited spam tokens designed to attract attention. Do not interact with an unfamiliar token merely because it appears valuable in a wallet interface.'},
-  'stuck-crypto':{title:'Stuck Crypto: Why a Small Balance May Not Move',description:'Common reasons small crypto balances get stuck and what to check before trying another transaction.',h2:'Check Network, Liquidity and Fees',body:'A balance can appear stuck because of network selection, insufficient native gas, token restrictions, low liquidity, or an uneconomical route. Diagnose the reason before signing another transaction.'},
-  'tokens-i-cant-sell':{title:'Tokens I Can’t Sell: What Should I Check?',description:'A safety-first guide to tokens that cannot be sold or swapped.',h2:'A Failed Sell Is a Warning to Investigate',body:'If a token cannot be sold, check its exact contract, liquidity, trading restrictions and network. Avoid repeatedly signing transactions or paying fees without understanding why the swap fails.'},
-  'unwanted-tokens':{title:'How to Deal With Unwanted Tokens in a Crypto Wallet',description:'Learn how to identify unwanted tokens and avoid interacting with suspicious wallet assets.',h2:'Do Not Interact Just to Make Them Disappear',body:'Unwanted tokens can be legitimate leftovers or unsolicited spam. The safest first step is observation and verification, not signing a transaction prompted by the token itself.'},
-  'how-to-consolidate-crypto':{title:'How to Consolidate Crypto Across Wallets and Networks',description:'A practical workflow for consolidating small crypto balances while controlling fees and security risks.',h2:'Inventory Before You Consolidate',body:'Group balances by network, verify token contracts, estimate transaction costs, and decide which assets are actually worth moving. Consolidation should reduce complexity rather than create unnecessary transactions.'},
-  'crypto-dust-calculator':{title:'Crypto Dust Calculator: Is a Small Balance Worth Moving?',description:'Estimate whether a small crypto balance is economically worth consolidating after network and route costs.',h2:'Compare Balance Value With Total Cost',body:'The useful calculation is not just token price multiplied by quantity. Include gas, swap or bridge fees, price impact and the expected amount received before deciding to move a small balance.'},
-  'crypto-wallet-scanner':{title:'Crypto Wallet Scanner for Small Balances and Dust',description:'Scan a crypto wallet to identify small balances, unfamiliar assets and cleanup opportunities.',h2:'Visibility Comes First',body:'A wallet scanner should help you inventory addresses and balances without asking for a seed phrase or private key. Use the results to decide what deserves verification before taking action.'},
-  'crypto-wallet-analyzer':{title:'Crypto Wallet Analyzer: Review Balances and Wallet Activity',description:'Analyze wallet holdings and identify forgotten, small, or unfamiliar crypto balances.',h2:'Analyze Before You Transact',body:'A useful wallet analysis separates discovery from execution. First understand the networks, balances and contracts involved; only then consider swaps, bridges or consolidation.'},
-  'find-forgotten-crypto':{title:'How to Find Forgotten Crypto in an Old Wallet',description:'A checklist for finding forgotten crypto balances across networks and old wallet activity.',h2:'Search Every Network You Used',body:'Forgotten balances are often hidden on networks that are no longer selected in a wallet interface. Review historical activity and check each relevant network before assuming an asset is gone.'},
-  'wallet-cleanup':{title:'Crypto Wallet Cleanup: A Practical Checklist',description:'Clean up a Web3 wallet by reviewing small balances, approvals, unfamiliar tokens and old activity.',h2:'Separate Discovery From Action',body:'A good wallet cleanup starts with a read-only inventory. Verify assets, review permissions and estimate costs before making transactions.'},
-  'wallet-audit-tool':{title:'Crypto Wallet Audit Tool: What to Check',description:'A practical framework for auditing a Web3 wallet for balances, permissions and unfamiliar assets.',h2:'The Four-Part Wallet Audit',body:'Review balances, networks, token contracts and approvals. The goal is to understand the wallet before changing anything, especially when old or unfamiliar assets are involved.'},
-  'small-crypto-amounts':{title:'How to Handle Small Crypto Amounts',description:'Learn how to evaluate and consolidate small crypto amounts without wasting money on fees.',h2:'Small Amounts Need Fee Awareness',body:'When the balance is small, fees become a larger percentage of the transaction. Compare the complete cost with the amount you would actually receive.'},
-  'convert-small-crypto-balances':{title:'How to Convert Small Crypto Balances',description:'Learn what to check when converting tiny crypto balances into a more useful asset.',h2:'Check Liquidity and Minimums',body:'Small balances may run into minimum trade sizes, liquidity constraints, price impact or network fees. Confirm all of these before attempting a conversion.'},
-  'crypto-balance-cleanup':{title:'Crypto Balance Cleanup: Remove Wallet Clutter Safely',description:'A guide to cleaning up small and forgotten crypto balances without taking unnecessary risks.',h2:'Not Everything Needs a Transaction',body:'A clean wallet does not mean every token must be moved. Some assets are better left untouched when the route is uneconomical or the token is suspicious.'},
-  'unknown-tokens':{title:'Unknown Tokens in Your Wallet: What Should You Do?',description:'A cautious workflow for researching unfamiliar tokens before interacting with them.',h2:'Treat Unfamiliar Tokens as Unverified',body:'Do not trust a ticker, logo, website link, or unsolicited message. Verify the contract and on-chain context using independent sources before signing anything.'},
-  'spam-tokens':{title:'Spam Tokens: How to Spot and Avoid Them',description:'Learn how unsolicited crypto tokens can be used to lure wallet users into risky interactions.',h2:'Ignore the Call to Action',body:'Spam tokens often try to create urgency through a token name, website, or transaction prompt. The safest response is to avoid interacting with the asset until it has been independently verified.'},
-  'crypto-portfolio-cleanup':{title:'Crypto Portfolio Cleanup Checklist',description:'A repeatable process for reviewing old assets, small balances and unused wallet activity.',h2:'Make Cleanup a Routine',body:'Review your wallet periodically, group assets by network, verify unfamiliar tokens and compare small balances with current transaction costs.'},
-  'multi-chain-wallet-cleanup':{title:'Multi-Chain Wallet Cleanup Guide',description:'How to organize and review small balances across Ethereum, L2s and other networks.',h2:'Think Network by Network',body:'Multi-chain wallets accumulate clutter because the same address can hold assets across many networks. Inventory each network separately before deciding what to consolidate.'},
-  'crypto-wallet-checkup':{title:'Crypto Wallet Checkup: A 10-Minute Routine',description:'A simple recurring routine for checking balances, permissions and unfamiliar wallet activity.',h2:'A Quick Monthly Review',body:'Check balances, recent activity, token approvals and unfamiliar assets. Use read-only tools where possible and never disclose private keys or seed phrases.'},
-  'dust-token-scanner':{title:'Dust Token Scanner: Find Small Token Balances',description:'Find small token balances and identify which ones deserve further investigation.',h2:'Scan First, Sign Later',body:'A dust scanner is useful for discovering balances that are easy to overlook. Discovery should not require permission to spend funds and should be followed by contract and cost verification.'},
-  'small-balance-crypto':{title:'Small-Balance Crypto: When Should You Consolidate It?',description:'Understand the economics and security checks behind consolidating small crypto balances.',h2:'The Right Question Is Economic',body:'The best cleanup decision depends on balance value, fees, liquidity and risk. Sometimes consolidating is useful; sometimes doing nothing is the rational choice.'},
-}
+import JsonLd from '../components/JsonLd'
+import DustCostCalculator from '../components/DustCostCalculator'
+import { INTENTS, CLUSTERS } from '../lib/seo-intents'
+import { SITE_URL, articleLd, breadcrumbLd, faqLd } from '../lib/seo'
+import { SCAN_CHAIN_SLUGS, chainMap } from '../learn/data'
 
 export const dynamicParams = false
-export function generateStaticParams(){return Object.keys(INTENTS).map(intent=>({intent}))}
-export async function generateMetadata({params}:{params:Promise<{intent:string}>}):Promise<Metadata>{const {intent}=await params;const d=INTENTS[intent];if(!d)return{};return{title:`${d.title} | Dust Sweeper`,description:d.description,keywords:[d.title.toLowerCase(),'crypto dust','wallet cleanup','small crypto balance'],alternates:{canonical:`https://dustsweepertool.com/${intent}`},openGraph:{title:d.title,description:d.description,url:`https://dustsweepertool.com/${intent}`,type:'article'}}}
+export function generateStaticParams() {
+  return Object.keys(INTENTS).map((intent) => ({ intent }))
+}
 
-export default async function IntentPage({params}:{params:Promise<{intent:string}>}){const {intent}=await params;const d=INTENTS[intent];if(!d)return null;return <main className="bg-[#0B0C10] text-white min-h-screen py-20 px-6"><article className="max-w-3xl mx-auto border border-white/5 bg-[#030303] p-8 md:p-16 rounded-3xl shadow-2xl"><div className="text-pink-500 font-bold text-xs uppercase tracking-[0.3em] mb-4">Dust Sweeper • Guide</div><h1 className="text-4xl md:text-6xl font-black leading-tight mb-6">{d.title}</h1><p className="text-xl text-gray-400 italic font-light">{d.description}</p><section className="space-y-8 text-gray-300 leading-relaxed text-lg mt-12"><h2 className="text-2xl font-bold text-white uppercase tracking-wider">{d.h2}</h2><p>{d.body}</p><h2 className="text-2xl font-bold text-white uppercase tracking-wider">What to Check</h2><ul className="list-disc pl-6 space-y-4 text-gray-400"><li>Confirm the wallet address and network.</li><li>Verify the exact token contract instead of relying on ticker or logo.</li><li>Compare the balance with gas, swap, bridge and liquidity costs.</li><li>Do not sign transactions you do not understand.</li><li>Never share a seed phrase or private key with a scanner or cleanup tool.</li></ul><div className="bg-white/5 border-l-4 border-pink-500 p-6 italic">The goal of wallet cleanup is informed decision-making, not moving every tiny balance.</div><h2 className="text-2xl font-bold text-white uppercase tracking-wider">Use Dust Sweeper</h2><p>Start with visibility: scan your wallet, review the balances you find, and decide which assets deserve further investigation.</p><Link href="/" className="inline-block px-10 py-4 text-sm font-black rounded-xl" style={{background:'linear-gradient(90deg, #E91E63 0%, #9C27B0 100%)'}}>SCAN YOUR WALLET</Link><p><Link href="/tokens" className="text-pink-400 hover:text-pink-300">Explore token dust guides →</Link></p></section></article></main>}
+export async function generateMetadata({ params }: { params: Promise<{ intent: string }> }): Promise<Metadata> {
+  const { intent } = await params
+  const d = INTENTS[intent]
+  if (!d) return {}
+  const url = `${SITE_URL}/${intent}`
+  const title = d.title.length <= 48 ? `${d.title} | Dust Sweeper` : d.title
+  return {
+    title,
+    description: d.description,
+    alternates: { canonical: url },
+    openGraph: { title: d.title, description: d.description, url, type: 'article', images: [{ url: '/og-image.png', width: 1200, height: 630 }] },
+    twitter: { card: 'summary_large_image', title: d.title, description: d.description, images: ['/og-image.png'] },
+  }
+}
+
+function relatedFor(intent: string): string[] {
+  const own = Object.values(CLUSTERS).find((c) => c.includes(intent)) ?? []
+  const same = own.filter((s) => s !== intent)
+  const idx = own.indexOf(intent)
+  const nearby = [1, 2, 3, 4].map((o) => own[(idx + o) % own.length]).filter((s) => s && s !== intent)
+  const others = Object.values(CLUSTERS).filter((c) => c !== own).map((c) => c[idx % c.length]).filter(Boolean)
+  return Array.from(new Set([...nearby, ...same.slice(0, 2), ...others])).slice(0, 6)
+}
+
+const STEPS: [string, string][] = [
+  ['Check your public address on every network', 'Use a read-only scan. You only need the public address, never a seed phrase or private key.'],
+  ['Verify before you trust', 'Compare each unfamiliar token contract with an independent source. A ticker or logo proves nothing.'],
+  ['Work out the real cost', 'Add network gas, route fees and price impact, then compare the total with the balance value.'],
+  ['Act only where it pays off', 'Move balances that stay clearly positive after costs. Hide or ignore the rest.'],
+]
+
+export default async function IntentPage({ params }: { params: Promise<{ intent: string }> }) {
+  const { intent } = await params
+  const d = INTENTS[intent]
+  if (!d) return null
+  const path = `/${intent}`
+  const related = relatedFor(intent)
+
+  return (
+    <main className="bg-[#0B0C10] text-white min-h-screen py-20 px-6">
+      <JsonLd data={[
+        articleLd({ title: d.title, description: d.description, path }),
+        breadcrumbLd([{ name: 'Home', path: '/' }, { name: 'Guides', path: '/learn' }, { name: d.title, path }]),
+        faqLd(d.faq),
+      ]} />
+      <article className="max-w-3xl mx-auto border border-white/5 bg-[#030303] p-8 md:p-16 rounded-3xl shadow-2xl">
+        <nav aria-label="Breadcrumb" className="text-xs text-gray-500 mb-8 flex flex-wrap gap-x-2">
+          <Link href="/" className="hover:text-white">Home</Link><span>/</span>
+          <Link href="/learn" className="hover:text-white">Guides</Link>
+        </nav>
+        <div className="text-pink-500 font-bold text-xs uppercase tracking-[0.3em] mb-4">Dust Sweeper • Guide</div>
+        <h1 className="text-4xl md:text-6xl font-black leading-tight mb-6">{d.title}</h1>
+        <p className="text-xl text-gray-400 italic font-light">{d.description}</p>
+
+        <div className="mt-10 rounded-2xl border border-pink-500/30 bg-pink-500/5 p-6">
+          <div className="text-xs font-bold uppercase tracking-widest text-pink-400 mb-2">Quick answer</div>
+          <p className="text-gray-200 leading-relaxed">{d.answer}</p>
+        </div>
+
+        <section className="space-y-8 text-gray-300 leading-relaxed text-lg mt-12">
+          <h2 className="text-2xl font-bold text-white uppercase tracking-wider">{d.h2}</h2>
+          {d.body.map((p, i) => <p key={i}>{p}</p>)}
+
+          {d.calc && <DustCostCalculator />}
+
+          <h2 className="text-2xl font-bold text-white uppercase tracking-wider">A Simple 4-Step Process</h2>
+          <ol className="list-decimal pl-6 space-y-4 text-gray-400">
+            {STEPS.map(([t, s]) => <li key={t}><strong className="text-gray-200">{t}.</strong> {s}</li>)}
+          </ol>
+
+          <div className="bg-white/5 border-l-4 border-pink-500 p-6 italic">
+            The goal of wallet cleanup is informed decision-making, not moving every tiny balance. Never share a seed phrase or private key with any scanner or cleanup tool.
+          </div>
+
+          <h2 className="text-2xl font-bold text-white uppercase tracking-wider">Frequently Asked Questions</h2>
+          <div className="space-y-6">
+            {d.faq.map(([q, a]) => (
+              <div key={q}>
+                <h3 className="text-xl font-bold text-white mb-2">{q}</h3>
+                <p className="text-gray-400">{a}</p>
+              </div>
+            ))}
+          </div>
+
+          <h2 className="text-2xl font-bold text-white uppercase tracking-wider">Use Dust Sweeper</h2>
+          <p>Dust Finder reads your public address on seven networks, shows small and forgotten balances, and lets you compare swap and bridge routes before you sign anything. It is non-custodial: every transaction is one you review and approve in your own wallet.</p>
+          <Link href="/?tool=finder" className="inline-block px-10 py-4 text-sm font-black rounded-xl" style={{ background: 'linear-gradient(90deg, #E91E63 0%, #9C27B0 100%)' }}>SCAN YOUR WALLET</Link>
+
+          <h2 className="text-2xl font-bold text-white uppercase tracking-wider">Related Guides</h2>
+          <div className="grid sm:grid-cols-2 gap-3">
+            {related.map((s) => (
+              <Link key={s} href={`/${s}`} className="border border-white/10 rounded-xl px-4 py-3 text-sm text-gray-300 hover:text-white hover:border-white/25">{INTENTS[s].title} →</Link>
+            ))}
+          </div>
+          <div className="flex flex-wrap gap-x-5 gap-y-2 text-sm">
+            <Link href="/tokens" className="text-pink-400 hover:text-white">Token dust guides →</Link>
+            <Link href="/blog" className="text-pink-400 hover:text-white">Blog →</Link>
+            <Link href="/learn" className="text-pink-400 hover:text-white">All Web3 guides →</Link>
+          </div>
+          <div className="flex flex-wrap gap-2 text-xs text-gray-500">
+            {SCAN_CHAIN_SLUGS.map((c) => <Link key={c} href={`/dust-recovery/${c}`} className="rounded-full border border-white/10 px-3 py-1 hover:text-white">{chainMap[c]} dust</Link>)}
+          </div>
+        </section>
+      </article>
+    </main>
+  )
+}

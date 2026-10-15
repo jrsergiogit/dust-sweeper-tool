@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { chains, topics, chainMap, bridgePairs, getChainProfile } from "../../data";
+import { chains, topics, chainMap, bridgePairs, getChainProfile, INDEXED_NETWORK_HUBS, isIndexableChainTopic, PRIORITY_TOPICS } from "../../data";
 
 export const dynamicParams = false;
 
@@ -19,6 +19,7 @@ export async function generateMetadata({ params }: { params: Promise<{ chain: st
     description,
     keywords: [`${name} wallet`, `${name} dust`, `${name} bridge`, `${name} crypto`, "web3 wallet security"],
     alternates: { canonical: `https://dustsweepertool.com/learn/network/${chain}` },
+    robots: INDEXED_NETWORK_HUBS.includes(chain) ? undefined : { index: false, follow: true },
     openGraph: { title: `${name} Wallet & Cross-Chain Guide | Dust Sweeper`, description, url: `https://dustsweepertool.com/learn/network/${chain}`, type: "article" },
   };
 }
@@ -28,7 +29,7 @@ export default async function NetworkPage({ params }: { params: Promise<{ chain:
   const name = chainMap[chain];
   if (!name) return null;
   const profile = getChainProfile(chain);
-  const networkTopics = topics.filter(([slug]) => slug.includes(chain) || /dust|wallet|bridge|security|gas|token|recovery/i.test(slug)).slice(0, 8);
+  const networkTopics = [...topics].sort((a, b) => Number(isIndexableChainTopic(chain, b[0])) - Number(isIndexableChainTopic(chain, a[0]))).filter(([slug]) => isIndexableChainTopic(chain, slug) || slug.includes(chain) || /dust|wallet|bridge|security|gas|token|recovery/i.test(slug)).slice(0, 8);
   const routes = bridgePairs.filter(p => p.from === chain || p.to === chain).slice(0, 8);
   return <div className="bg-[#0B0C10] text-white min-h-screen py-20 px-6">
     <article className="max-w-5xl mx-auto">
