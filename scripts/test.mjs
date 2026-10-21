@@ -249,7 +249,7 @@ await test('Initial UX contains no fake recoverable $0 and no LI.FI widget',()=>
   const tree=nodes(render());assert.equal(tree.filter(n=>n?.type==='TEST_LIFI_WIDGET').length,0);assert.ok(!JSON.stringify(tree).includes('Total recoverable'));const intro=tree.find(n=>typeof n?.type==='function'&&n.type.name==='FinderIntro');assert.ok(intro);const rendered=nodes(intro.type(intro.props));assert.ok(JSON.stringify(rendered).includes('No wallet connection'));
 });
 await test('Scan results without a selected asset do not render a recovery widget',()=>{
-  const tree=nodes(render({scanStep:'result',foundTokens:[asset],foundBalance:'1.23',finderAddress:input.fromAddress}));assert.equal(tree.filter(n=>n?.type==='TEST_LIFI_WIDGET').length,0);assert.ok(JSON.stringify(tree).includes('Check options'));
+  const tree=nodes(render({scanStep:'result',foundTokens:[asset],foundBalance:'1.23',finderAddress:input.fromAddress}));assert.equal(tree.filter(n=>n?.type==='TEST_LIFI_WIDGET').length,0);assert.ok(JSON.stringify(tree).includes('View recovery options'));
 });
 await test('Selected asset mounts one widget with the exact amount and unchanged fee',()=>{
   const widgets=nodes(render({scanStep:'result',foundTokens:[asset],selectedRecoveryToken:asset,finderAddress:input.fromAddress})).filter(n=>n?.type==='TEST_LIFI_WIDGET');

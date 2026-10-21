@@ -774,9 +774,10 @@ export default function AppPortal() {
                     <section aria-label="Scan summary" className="rounded-2xl border border-emerald-400/15 bg-emerald-500/[0.04] p-4 sm:p-5">
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
-                          <p className="text-sm font-semibold text-emerald-300">Scan complete &middot; {foundTokens.length} asset{foundTokens.length === 1 ? '' : 's'} found</p>
-                          <p className="mt-2 text-3xl font-bold text-white">{foundTokens.length === 0 ? 'No assets found' : parseFloat(foundBalance) > 0 ? `$${foundBalance}` : 'Price unavailable'}</p>
-                          <p className="mt-1 text-xs leading-5 text-gray-400">Estimated priced assets, not a guaranteed recoverable amount.</p>
+                          <p className="text-sm font-semibold text-emerald-300">Scan complete</p>
+                          <p className="mt-2 text-2xl font-bold text-white sm:text-3xl">{foundTokens.length} asset{foundTokens.length === 1 ? '' : 's'} found</p>
+                          <p className="mt-3 text-sm leading-6 text-gray-300">Estimated asset value: <span className="font-semibold text-white">{foundTokens.length === 0 ? 'No assets found' : parseFloat(foundBalance) > 0 ? `$${foundBalance}` : 'Price unavailable'}</span></p>
+                          <p className="mt-1 text-xs leading-5 text-gray-400">Based on available prices. The recoverable amount depends on the route and costs.</p>
                         </div>
                         <button onClick={handleResetScan} disabled={executionBusy} className="min-h-11 shrink-0 rounded-xl border border-white/15 px-3 text-sm text-gray-200 disabled:opacity-40">New scan</button>
                       </div>
@@ -787,15 +788,15 @@ export default function AppPortal() {
                     <div ref={assetListRef} className="scroll-mt-24 rounded-[30px] border border-white/[0.08] bg-gradient-to-b from-white/[0.035] to-white/[0.018] p-5 shadow-[0_22px_60px_rgba(0,0,0,0.26)] sm:p-6">
                       <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                         <div>
-                          <p className="text-[10px] font-bold uppercase tracking-widest text-purple-300">Step 2 · Your wallet assets</p>
-                          <h3 className="mt-1 text-lg font-black text-white">Choose an asset to check</h3>
-                          <p className="mt-1 text-xs text-gray-500">Choose one asset. Review the amount you would receive and the costs before you decide.</p>
+                          <p className="text-xs font-bold uppercase tracking-widest text-purple-300">Step 2 · Your wallet assets</p>
+                          <h3 className="mt-2 text-2xl font-bold text-white">Choose an asset to get started</h3>
+                          <p className="mt-2 max-w-xl text-sm leading-6 text-gray-300">View recovery options for one asset, then review the amount and costs before confirming.</p>
                         </div>
-                        <span className="self-start rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-[10px] font-bold text-gray-400 sm:self-auto">{foundTokens.length} asset{foundTokens.length === 1 ? '' : 's'} found</span>
+                        <span className="shrink-0 self-start rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs font-semibold text-gray-300 sm:self-auto">{visibleFinderAssets.length} of {foundTokens.length} shown</span>
                       </div>
-                      <details className="mb-3 rounded-xl border border-white/10 px-3">
-                        <summary className="min-h-11 cursor-pointer content-center text-sm text-gray-300">Search and filters{assetFilter !== 'all' || assetSearch || assetNetwork !== 'all' ? ` - ${visibleFinderAssets.length} shown` : ''}</summary>
-                        <div className="pb-3">
+                      <section aria-label="Search and filters" className="mb-4 rounded-2xl border border-white/10 bg-black/15 p-3 sm:p-4">
+                        <p className="mb-3 text-sm font-semibold text-gray-200">Find an asset</p>
+                        <div>
                       <div className="mb-3 grid gap-2 sm:grid-cols-[minmax(0,1fr)_190px]">
                         <input aria-label="Search assets" value={assetSearch} onChange={e => setAssetSearch(e.target.value)} placeholder="Search token name or symbol" className="min-h-11 min-w-0 rounded-xl border border-white/15 bg-black/30 px-3 text-base text-white placeholder:text-gray-400" />
                         <select aria-label="Filter by network" value={assetNetwork} onChange={e => setAssetNetwork(e.target.value)} className="min-h-11 min-w-0 rounded-xl border border-white/15 bg-[#11131b] px-3 text-sm text-gray-200">
@@ -803,17 +804,17 @@ export default function AppPortal() {
                           {finderNetworks.map(network => <option key={network} value={network}>{network}</option>)}
                         </select>
                       </div>
-                      <div aria-label="Filter assets" className="mb-4 flex flex-wrap gap-2">
+                      <div aria-label="Filter assets" className="flex flex-wrap gap-2">
                         {(['all', 'priced', 'unpriced'] as const).map(filter => <button key={filter} aria-pressed={assetFilter === filter} onClick={() => setAssetFilter(filter)} className={`min-h-11 rounded-xl border px-3 text-sm ${assetFilter === filter ? 'border-purple-400/40 bg-purple-500/15 text-white' : 'border-white/10 text-gray-300'}`}>{filter === 'all' ? 'All assets' : filter === 'priced' ? 'With price' : 'Without price'}</button>)}
                       </div>
                       {foundTokens.length > 0 && visibleFinderAssets.length === 0 && <div className="mb-3 rounded-xl border border-white/10 p-4 text-sm text-gray-300"><p>No assets match these filters.</p><button onClick={() => { setAssetFilter('all'); setAssetSearch(''); setAssetNetwork('all'); }} className="mt-2 min-h-11 rounded-lg border border-white/20 px-4">Clear filters</button></div>}
                         </div>
-                      </details>
+                      </section>
                       <div className="max-h-[460px] space-y-2 overflow-y-auto pr-1 custom-scrollbar">
                         {foundTokens.length === 0 ? (
                           <div className="rounded-2xl border border-dashed border-white/10 py-10 text-center">
                             <p className="text-sm font-semibold text-gray-400">No assets with a positive balance found</p>
-                            <p className="mt-1 text-xs text-gray-600">The wallet scan did not return any positive token balances.</p>
+                            <p className="mt-2 text-sm leading-6 text-gray-400">The wallet scan did not return any positive token balances.</p>
                           </div>
                         ) : (
                           visibleFinderAssets.map((token, i) => {
@@ -828,7 +829,7 @@ export default function AppPortal() {
                                 key={`${token.network}-${token.tokenAddress || token.contractAddress || 'native'}-${i}`}
                                 className={`rounded-2xl border p-4 transition-all duration-300 ${isSelected ? 'border-purple-400/35 bg-purple-500/[0.10] shadow-[0_10px_30px_rgba(124,58,237,0.12)]' : 'border-white/[0.06] bg-white/[0.025] hover:border-white/10 hover:bg-white/[0.045]'}`}
                               >
-                                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                                <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
                                   <div className="min-w-0">
                                     <div className="flex items-center gap-3">
                                       <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-purple-400/15 bg-purple-500/10 text-xs font-black text-purple-200">
@@ -836,26 +837,26 @@ export default function AppPortal() {
                                       </div>
                                       <div className="min-w-0">
                                         <p className="truncate font-bold text-white">{displayToken.symbol}</p>
-                                        <p className="truncate text-[11px] text-gray-400">{displayToken.name}</p>
+                                        <p className="mt-0.5 truncate text-sm text-gray-400">{displayToken.name}</p>
                                       </div>
                                     </div>
                                     <div className="mt-3 flex flex-wrap items-center gap-2">
                                       <span className="rounded-lg border border-white/[0.07] bg-black/20 px-2 py-1 text-xs font-semibold text-gray-300">{networkName}</span>
-                                      {tokenAmount > 0 && <span className="text-xs font-mono text-gray-300">{displayAssetAmount(tokenAmount)} {displayToken.symbol}</span>}
+                                      {tokenAmount > 0 && <span className="min-w-0 break-all font-mono text-sm text-gray-300">{displayAssetAmount(tokenAmount)} {displayToken.symbol}</span>}
                                     </div>
                                   </div>
-                                  <div className="flex shrink-0 items-center justify-between gap-4 sm:justify-end">
+                                  <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between md:flex-col md:items-end">
                                     {Number(token?.priceUsd || 0) > 0 ? (
-                                      <p className="font-mono text-sm font-bold text-emerald-400">${formatUsd(token.valueUsd)}</p>
+                                      <p className="break-all font-mono text-base font-semibold text-white">${formatUsd(token.valueUsd)} <span className="font-sans text-xs font-normal text-gray-400">estimated</span></p>
                                     ) : (
-                                      <p className="text-sm font-semibold text-gray-500">Price unavailable</p>
+                                      <p className="text-sm text-gray-400">Price unavailable</p>
                                     )}
                                     <button
                                       onClick={() => selectRecoveryToken(token)}
                                       disabled={!canRoute || executionBusy}
-                                      className={`rounded-xl min-h-11 px-4 py-2.5 text-xs font-bold transition ${isSelected ? 'border border-purple-300/30 bg-purple-500/25 text-white' : 'border border-purple-400/25 bg-purple-500/10 text-purple-200 hover:bg-purple-500/20 hover:text-white'} disabled:cursor-not-allowed disabled:opacity-40`}
+                                      className={`min-h-12 w-full rounded-xl px-4 py-3 text-sm font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-300 sm:w-auto ${isSelected ? 'border border-purple-300/30 bg-purple-500/25 text-white' : 'border border-purple-400/40 bg-purple-600 text-white hover:bg-purple-500'} disabled:cursor-not-allowed disabled:opacity-40`}
                                     >
-                                      {isSelected ? 'Selected' : 'Check options'}
+                                      {isSelected ? 'Selected' : 'View recovery options'}
                                     </button>
                                   </div>
                                 </div>
@@ -870,31 +871,31 @@ export default function AppPortal() {
 
                     {selectedRecoveryToken && (
                       <div ref={recoverySectionRef} className="scroll-mt-24 rounded-[30px] border border-purple-400/20 bg-purple-500/[0.04] p-4 sm:p-6">
-                        <p className="text-xs font-bold uppercase tracking-widest text-purple-300">Step 3 · Your decision</p>
+                        <p className="text-xs font-bold uppercase tracking-widest text-purple-300">Step 3 · Review and confirm</p>
                         <h3 className="mt-2 text-2xl font-black text-white">Review your recovery options</h3>
+                        <p className="mt-2 text-sm leading-6 text-gray-300">Review what you would receive and the costs below. Confirm each required step in your wallet.</p>
                         <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-white/10 bg-black/20 p-4">
-                          <div>
+                          <div className="min-w-0 flex-1">
                             <p className="text-xs text-gray-400">Asset chosen from your scan</p>
-                            <p className="mt-1 font-bold text-white">{getTokenDisplay(selectedRecoveryToken).symbol} · {getNetworkDisplay(selectedRecoveryToken)}</p>
-                            <p className="mt-1 text-xs text-gray-400">Wallet {shortAddr(finderAddress)}. Connect the wallet holding this asset in LI.FI.</p>
+                            <p className="mt-1 break-words text-lg font-bold text-white">{getTokenDisplay(selectedRecoveryToken).symbol} · {getNetworkDisplay(selectedRecoveryToken)}</p>
+                            <p className="mt-2 text-sm leading-6 text-gray-400">Wallet {shortAddr(finderAddress)}. Connect this wallet in LI.FI below.</p>
                           </div>
-                          <button onClick={chooseAnotherAsset} disabled={executionBusy} className="min-h-11 rounded-xl border border-white/15 px-4 text-sm text-gray-200 hover:bg-white/10 disabled:opacity-40">Choose another asset</button>
+                          <button onClick={chooseAnotherAsset} disabled={executionBusy} className="min-h-12 w-full shrink-0 rounded-xl border border-purple-300/40 bg-purple-500/10 px-4 text-sm font-semibold text-purple-100 hover:bg-purple-500/20 disabled:opacity-40 sm:w-auto">Choose another asset</button>
                         </div>
                         {isNativeTokenAddress(getTokenAddress(selectedRecoveryToken)) && (
                           <p className="mt-3 rounded-xl border border-purple-300/20 p-4 text-sm text-purple-100">This is already the currency used to pay network fees. Choose a different token or network to receive below.</p>
                         )}
-                        <div className="mt-4 rounded-xl border border-white/10 bg-white/[0.02] p-4 text-sm text-gray-300">
-                          <p className="text-white">Review your quote, then confirm in your wallet.</p>
-                          <details className="mt-2">
-                            <summary className="min-h-11 cursor-pointer content-center text-gray-300">How wallet confirmation works</summary>
+                        <div className="mt-3 text-sm text-gray-300">
+                          <details className="rounded-xl border border-white/10 px-4 open:pb-4">
+                            <summary className="min-h-11 cursor-pointer content-center font-medium text-gray-300">About fees and wallet confirmation</summary>
                             <p className="mt-2 leading-6">Connecting a wallet does not complete a recovery. You review permissions and confirm each required step in your own wallet. LI.FI displays the current destination, estimated output and costs. Network gas may be charged separately.</p>
                             <p className="mt-2 leading-6">The amount starts slightly below the scanned balance. That buffer is not a gas estimate. Review the final amount in the widget, especially for native currencies.</p>
                             <p className="mt-2 leading-6"><a href="/faq" target="_blank" rel="noopener noreferrer" className="text-purple-300 underline underline-offset-4">Fee details and FAQ</a><span aria-hidden="true"> &middot; </span><a href="/terms" target="_blank" rel="noopener noreferrer" className="text-purple-300 underline underline-offset-4">Terms</a></p>
                           </details>
                         </div>
                         {recoveryState.status !== 'idle' && (
-                          <div role="status" aria-live="polite" className={`my-4 rounded-xl border p-4 text-sm ${recoveryState.status === 'completed' ? 'border-emerald-400/30 bg-emerald-500/10 text-emerald-100' : ['failed', 'cancelled', 'no-route'].includes(recoveryState.status) ? 'border-amber-400/25 text-amber-100' : 'border-purple-400/25 text-purple-100'}`}>
-                            {recoveryState.label && <p className="mb-1 font-bold">{recoveryState.label}</p>}
+                          <div role="status" aria-live="polite" className={`my-4 rounded-2xl border p-4 text-sm leading-6 ${recoveryState.status === 'completed' ? 'border-emerald-400/30 bg-emerald-500/10 text-emerald-100' : ['failed', 'cancelled', 'no-route'].includes(recoveryState.status) ? 'border-amber-400/40 bg-amber-500/10 text-amber-100' : 'border-purple-400/30 bg-purple-500/10 text-purple-100'}`}>
+                            {recoveryState.label && <p className="mb-1 text-base font-bold">{recoveryState.label}</p>}
                             {recoveryState.message}
                             {recoveryState.status === 'completed' && <div className="mt-3 flex flex-wrap items-center gap-3"><button onClick={chooseAnotherAsset} className="min-h-11 rounded-lg bg-purple-600 px-4 text-sm text-white">Check another asset</button><button onClick={shareRecovery} className="min-h-11 rounded-lg border border-white/20 px-4 text-sm">Share recovery</button><span>{shareMessage}</span></div>}
                           </div>
