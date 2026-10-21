@@ -320,6 +320,9 @@ export default function AppPortal() {
   const [userAddressInput, setUserAddressInput] = useState('');
   const [foundBalance, setFoundBalance] = useState('0.00');
   const [foundTokens, setFoundTokens] = useState<any[]>([]);
+  const [tokenRiskChecks, setTokenRiskChecks] = useState<Record<string, { status: 'loading' | 'success' | 'empty' | 'error'; result?: any }>>({});
+  const tokenRiskKey = (token: any) => `${String(getTokenChainId(token) || '')}:${String(getTokenAddress(token) || '').toLowerCase()}`;
+
   const [portfolioTokens, setPortfolioTokens] = useState<any[]>([]);
   const [portfolioTotal, setPortfolioTotal] = useState('0.00');
   const [portfolioLoading, setPortfolioLoading] = useState(false);
@@ -356,6 +359,45 @@ export default function AppPortal() {
     price: assetFilter, search: assetSearch, network: assetNetwork,
   }, getNetworkDisplay, getTokenDisplay), [foundTokens, assetFilter, assetSearch, assetNetwork]);
   const finderNetworks = useMemo(() => [...new Set(foundTokens.map(getNetworkDisplay))].sort(), [foundTokens]);
+
+  // Check security indicators per contract independently of token pricing.
+  useEffect(() => {
+    let cancelled = false;
+    const checkTokens = async () => {
+      const candidates = foundTokens.filter((token: any) => {
+        const address = String(getTokenAddress(token) || '');
+        const chainId = String(getTokenChainId(token) || '');
+        return /^0x[a-fA-F0-9]{40}$/.test(address) && Boolean(chainId);
+      });
+      for (const token of candidates) {
+        if (cancelled) return;
+        const key = tokenRiskKey(token);
+        if (tokenRiskChecks[key]) continue;
+        const address = String(getTokenAddress(token));
+        const chainId = String(getTokenChainId(token));
+        setTokenRiskChecks((prev) => ({ ...prev, [key]: { status: 'loading' } }));
+        try {
+          const response = await fetch(`/api/token-security?chainId=${encodeURIComponent(chainId)}&address=${encodeURIComponent(address)}`, { cache: 'no-store' });
+          if (!response.ok) throw new Error('Security lookup unavailable');
+          const payload = await response.json();
+          if (cancelled) return;
+          setTokenRiskChecks((prev) => ({
+            ...prev,
+            [key]: payload?.status === 'success' && payload?.result
+              ? { status: 'success', result: payload.result }
+              : { status: 'empty' },
+          }));
+        } catch {
+          if (!cancelled) setTokenRiskChecks((prev) => ({ ...prev, [key]: { status: 'error' } }));
+        }
+      }
+    };
+    if (foundTokens.length) void checkTokens();
+    return () => { cancelled = true; };
+  // tokenRiskChecks intentionally omitted: do not restart the scan when a check result updates.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [foundTokens]);
+
 
   // Scam Detector
   const [tokenToScan, setTokenToScan] = useState('');
@@ -844,6 +886,27 @@ export default function AppPortal() {
                                       <span className="rounded-lg border border-white/[0.07] bg-black/20 px-2 py-1 text-xs font-semibold text-gray-300">{networkName}</span>
                                       {tokenAmount > 0 && <span className="min-w-0 break-all font-mono text-sm text-gray-300">{displayAssetAmount(tokenAmount)} {displayToken.symbol}</span>}
                                     </div>
+                                    {(() => {
+                                      const check = tokenRiskChecks[tokenRiskKey(token)];
+                                      const result = check?.result || {};
+                                      const warnings: string[] = [];
+                                      const yes = (v: any) => ['1', 'true', 'yes'].includes(String(v ?? '').trim().toLowerCase());
+                                      const hasValue = (v: any) => v !== null && v !== undefined && v !== '';
+                                      // Only show an amber warning for stronger, actionable indicators.
+                                      // Minting and pausable transfers alone are common contract features, not proof of risk.
+                                      if (yes(result.isHoneypot)) warnings.push('Possible honeypot indicator reported');
+                                      if (yes(result.isBlacklisted)) warnings.push('Blacklist functionality reported');
+                                      if (yes(result.hiddenOwner)) warnings.push('Hidden owner indicator reported');
+                                      const buyTax = Number(result.buyTax);
+                                      const sellTax = Number(result.sellTax);
+                                      if (hasValue(result.buyTax) && Number.isFinite(buyTax) && buyTax >= 20) warnings.push(`Reported buy tax: ${buyTax.toFixed(1)}%`);
+                                      if (hasValue(result.sellTax) && Number.isFinite(sellTax) && sellTax >= 20) warnings.push(`Reported sell tax: ${sellTax.toFixed(1)}%`);
+                                      if (!check || check.status === 'loading') return <p className="mt-2 text-[11px] text-gray-500">{check?.status === 'loading' ? 'Checking security indicators…' : 'Security check pending…'}</p>;
+                                      if (check.status === 'error') return <p className="mt-2 text-[11px] text-gray-500">Security check unavailable.</p>;
+                                      if (check.status === 'empty') return <p className="mt-2 text-[11px] text-gray-500">No security data available for this contract.</p>;
+                                      if (warnings.length > 0) return <div className="mt-2 rounded-lg border border-amber-400/20 bg-amber-400/[0.04] px-3 py-2"><p className="text-[11px] font-semibold text-amber-200">Review contract indicators</p><ul className="mt-1 list-disc space-y-0.5 pl-4 text-[11px] text-amber-100">{warnings.map((signal) => <li key={signal}>{signal}</li>)}</ul><p className="mt-1 text-[10px] leading-4 text-gray-500">Third-party indicators are not a definitive classification.</p></div>;
+                                      return null;
+                                    })()}
                                   </div>
                                   <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between md:flex-col md:items-end">
                                     {Number(token?.priceUsd || 0) > 0 ? (
