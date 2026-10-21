@@ -105,9 +105,9 @@ export function trackDustEvent(event: string, properties: AnalyticsProperties = 
       else if (typeof value === 'boolean' || (typeof value === 'number' && Number.isFinite(value))) safeProperties[key] = value;
     }
     const json = JSON.stringify({
-      event, event_id: anonymousId(), schema_version: 2, session_id: sessionId(), device: device(),
+      event, event_id: anonymousId(), occurred_at: new Date().toISOString(), schema_version: 3, session_id: sessionId(), device: device(),
       path: cleanPath(window.location.pathname), ...publicAttribution,
-      properties: { language: getBrowserLanguage(), ...safeProperties, analytics_version: 'v2', has_ad_click: Boolean(gclid || gbraid || wbraid) },
+      properties: { language: getBrowserLanguage(), ...safeProperties, analytics_version: 'v3', has_ad_click: Boolean(gclid || gbraid || wbraid) },
     });
     if (navigator.sendBeacon?.('/api/analytics-event', new Blob([json], { type: 'application/json' }))) return;
     void fetch('/api/analytics-event', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: json, keepalive: true }).catch(() => {});

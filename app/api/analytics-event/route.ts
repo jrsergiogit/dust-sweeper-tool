@@ -21,8 +21,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ ok: false, error: 'Invalid event' }, { status: 400, headers });
     }
     const properties = cleanAnalyticsProperties(raw.properties);
+    const occurred = typeof raw.occurred_at === 'string' ? Date.parse(raw.occurred_at) : NaN;
+    const now = Date.now();
+    // Legacy clients may omit this. Keep missing times empty instead of inventing client order.
+    const occurredAt = Number.isFinite(occurred) && occurred <= now + 60_000 && occurred >= now - 7 * 86_400_000
+      ? new Date(occurred).toISOString() : '';
     const data = {
-      event, session_id: session,
+      event, event_id: eventId, occurred_at: occurredAt, session_id: session,
       device: cleanText(raw.device, 20), path: cleanText(raw.path, 160).split('?')[0],
       source: cleanText(raw.source, 100), medium: cleanText(raw.medium, 100),
       campaign: cleanText(raw.campaign), content: cleanText(raw.content), term: cleanText(raw.term),

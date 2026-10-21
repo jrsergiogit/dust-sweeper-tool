@@ -232,6 +232,8 @@ await test('Self-referrals are not classified as an external traffic source',()=
 await test('Advertising identifiers stay out of the custom analytics payload',async()=>{
   sent=[];const analytics=browser('https://dustsweepertool.com/?gclid=private-click-id');analytics.trackDustEvent('page_view',{language:'en'});
   const payload=JSON.parse(await sent[0].text());assert.ok(!JSON.stringify(payload).includes('private-click-id'));assert.equal(payload.source,'google');assert.equal(payload.properties.has_ad_click,true);
+  assert.equal(payload.schema_version,3);assert.equal(payload.properties.analytics_version,'v3');
+  assert.ok(Number.isFinite(Date.parse(payload.occurred_at)));assert.ok(payload.event_id);
 });
 
 // Structural UI assertions execute the real component with mock React hooks (not a browser or visual test).
@@ -305,15 +307,18 @@ await test('The existing LI.FI environment key is read only in the server fallba
 await test('Local previews do not send analytics or ad conversion events',()=>{
   const before=sent.length;const analytics=browser('http://localhost:3000/');analytics.trackDustEvent('wallet_scan_started');assert.equal(sent.length,before);
 });
-await test('Existing Sheets event transport fields are preserved without a schema migration',async()=>{
+await test('Sheets transport preserves existing fields and forwards v3 event identity and time',async()=>{
   process.env.ANALYTICS_SHEETS_WEB_APP_URL='https://example.invalid/script';process.env.ANALYTICS_SHARED_SECRET='fake-secret';
   let payload;globalThis.fetch=async(_url,opts)=>{payload=JSON.parse(opts.body);return Response.json({ok:true});};
   const handler=load('app/api/analytics-event/route.ts');
   const response=await handler.POST(makeRequest({event:'recovery_completed',event_id:'event-123456',session_id:'session-123456',source:'direct',properties:{feature:'finder',route_status:'completed'}}));
   assert.equal(response.status,200);assert.equal(payload.action,'event');
-  assert.deepEqual(Object.keys(payload.data).sort(),['event','session_id','device','path','source','medium','campaign','content','term','referrer','properties'].sort());
+  assert.deepEqual(Object.keys(payload.data).sort(),['event','event_id','occurred_at','session_id','device','path','source','medium','campaign','content','term','referrer','properties'].sort());
+  assert.equal(payload.data.event_id,'event-123456');assert.equal(payload.data.occurred_at,'');
   delete process.env.ANALYTICS_SHEETS_WEB_APP_URL;delete process.env.ANALYTICS_SHARED_SECRET;globalThis.fetch=originalFetch;
 });
+const { runAnalyticsV3Tests } = await import('./test-analytics-v3.mjs');
+await runAnalyticsV3Tests({ test, load, root, react: reactMock });
 Module._load=originalLoad;globalThis.fetch=originalFetch;
 const report={createdAt:new Date().toISOString(),node:process.version,passed:results.filter(x=>x.passed).length,failed:results.filter(x=>!x.passed).length,
   scope:'Local regression tests, mocked framework/provider boundaries, structural JSX checks and source transpilation. Not a production build, visual browser test or real transaction.',results};
