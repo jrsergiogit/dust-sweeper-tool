@@ -64,6 +64,77 @@ export async function runAnalyticsV3Tests({ test, load, root, react }) {
     session_id, event: name, feature: 'finder', ...fields,
   });
 
+  await test('New measurement marker is stable and never changes historical rows or credentials', () => {
+    const f = fixture();
+    f.setRows([event('old', 'page_view')]);
+    const before = plain(f.state.rows);
+    assert.equal(f.context.startAnalyticsPeriod(), '2026-10-21T12:00:00.000Z');
+    f.properties.set('ANALYTICS_PERIOD_START', '2026-10-21T11:00:00.000Z');
+    assert.equal(f.context.startAnalyticsPeriod(), '2026-10-21T11:00:00.000Z');
+    assert.deepEqual(plain(f.state.rows), before);
+    assert.equal(f.properties.get('ANALYTICS_SHARED_SECRET'), 'test-secret');
+    assert.equal(f.state.lockDepth, 0);
+  });
+
+  await test('Since-update filter respects the exact timestamp, client time and retains full history in day filters', () => {
+    const f = fixture();
+    f.properties.set('ANALYTICS_PERIOD_START', '2026-10-21T09:00:00Z');
+    f.setRows([
+      event('before', 'recovery_completed', 59),
+      event('boundary', 'recovery_execution_started', 60, { operation_id: 'new-op' }),
+      event('boundary', 'recovery_completed', 61, { operation_id: 'new-op' }),
+      event('delayed-old', 'recovery_completed', 62, { occurred_at: '2026-10-21T08:59:00Z' }),
+    ]);
+    const d = plain(f.context.buildDashboard(30, 'since_update'));
+    assert.equal(d.period_mode, 'since_update'); assert.equal(d.funnel.sessions, 1);
+    assert.equal(d.funnel.recovery_completed, 1); assert.equal(d.operation_totals.completed, 1);
+    assert.equal(d.daily[0].sessions, 1); assert.equal(d.sources[0].sessions, 1);
+    assert.equal(d.measurement_started_at, '2026-10-21T09:00:00.000Z');
+    assert.equal(f.dashboard(7).funnel.sessions, 3);
+    assert.equal(f.state.rows.length, 5);
+  });
+
+  await test('Since-update requires a configured marker and supports an empty new period', () => {
+    const f = fixture();
+    assert.throws(() => f.context.buildDashboard(30, 'since_update'), /startAnalyticsPeriod/);
+    f.context.startAnalyticsPeriod();
+    const d = plain(f.context.buildDashboard(30, 'since_update'));
+    assert.equal(d.funnel.sessions, 0); assert.equal(d.period_days, 1);
+    assert.equal(d.daily.length, 1); assert.equal(d.funnel.total_recovery_rate, 0);
+  });
+
+  await test('Since-update period continues beyond 365 days without silently dropping its beginning', () => {
+    const f = fixture();
+    f.properties.set('ANALYTICS_PERIOD_START', '2025-01-01T00:00:00Z');
+    f.setRows([event('first', 'page_view', 0, { timestamp: new Date('2025-01-01T01:00:00Z') })]);
+    const d = plain(f.context.buildDashboard(30, 'since_update'));
+    assert.equal(d.period_start, '2025-01-01'); assert.ok(d.period_days > 365);
+    assert.equal(d.funnel.sessions, 1); assert.equal(f.dashboard(30).funnel.sessions, 0);
+  });
+
+  await test('Dashboard API forwards the selected period and rejects an old backend for since-update requests', async () => {
+    const keys = ['ANALYTICS_SHEETS_WEB_APP_URL', 'ANALYTICS_SHARED_SECRET', 'ANALYTICS_DASHBOARD_PASSWORD'];
+    const before = keys.map(k => process.env[k]), originalFetch = globalThis.fetch;
+    process.env.ANALYTICS_SHEETS_WEB_APP_URL = 'https://example.invalid/script';
+    process.env.ANALYTICS_SHARED_SECRET = 'test-secret';
+    process.env.ANALYTICS_DASHBOARD_PASSWORD = 'test-password';
+    try {
+      const handler = load('app/api/analytics-dashboard/route.ts');
+      const request = query => new Request('https://dustsweepertool.com/api/analytics-dashboard?' + query, { headers: { authorization: 'Bearer test-password' } });
+      let sent;
+      globalThis.fetch = async (_url, options) => { sent = JSON.parse(options.body); return Response.json({ ok: true, period_mode: sent.period }); };
+      assert.equal((await handler.GET(request('period=since_update'))).status, 200);
+      assert.equal(sent.period, 'since_update');
+      assert.equal((await handler.GET(request('days=7'))).status, 200);
+      assert.equal(sent.period, 'days'); assert.equal(sent.days, 7);
+      globalThis.fetch = async () => Response.json({ ok: true });
+      assert.equal((await handler.GET(request('period=since_update'))).status, 502);
+    } finally {
+      keys.forEach((k, i) => { if (before[i] === undefined) delete process.env[k]; else process.env[k] = before[i]; });
+      globalThis.fetch = originalFetch;
+    }
+  });
+
   await test('Analytics migration appends columns without changing historical rows, settings or custom columns', () => {
     const f = fixture();
     f.setRows([event('legacy', 'recovery_completed', 0, { custom_note: 'keep me' })], [...f.base, 'custom_note']);

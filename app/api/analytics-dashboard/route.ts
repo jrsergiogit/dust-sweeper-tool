@@ -31,6 +31,7 @@ export async function GET(request: Request) {
   const url = new URL(request.url);
   const requestedDays = Number(url.searchParams.get("days") || "30");
   const days = Math.min(365, Math.max(1, Number.isFinite(requestedDays) ? requestedDays : 30));
+  const period = url.searchParams.get("period") === "since_update" ? "since_update" : "days";
 
   try {
     const response = await fetch(webAppUrl, {
@@ -40,6 +41,7 @@ export async function GET(request: Request) {
         action: "dashboard",
         secret: sharedSecret,
         days,
+        period,
       }),
       redirect: "follow",
       cache: "no-store",
@@ -56,6 +58,10 @@ export async function GET(request: Request) {
         { ok: false, error: data?.error || "Unable to read analytics data." },
         { status: 502 }
       );
+    }
+
+    if (period === "since_update" && data.period_mode !== "since_update") {
+      return NextResponse.json({ ok: false, error: "Atualize o Apps Script e sua implantação para habilitar o filtro Desde a atualização." }, { status: 502 });
     }
 
     return NextResponse.json(data, {

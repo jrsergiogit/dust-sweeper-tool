@@ -82,6 +82,8 @@ type DashboardData = {
   ok: boolean;
   generated_at: string;
   period_days: number;
+  period_mode?: "since_update" | "days";
+  measurement_started_at?: string | null;
   analytics_version?: number;
   period_start?: string;
   period_end?: string;
@@ -300,7 +302,7 @@ function CountTable({ title, rows, note, total }: { title: string; rows: CountRo
 
 export default function AnalyticsDashboardPage() {
   const [password, setPassword] = useState("");
-  const [days, setDays] = useState(30);
+  const [days, setDays] = useState<number | "since_update">("since_update");
   const [data, setData] = useState<DashboardData | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -318,7 +320,8 @@ export default function AnalyticsDashboardPage() {
     setError("");
 
     try {
-      const response = await fetch(`/api/analytics-dashboard?days=${nextDays}`, {
+      const query = nextDays === "since_update" ? "period=since_update" : `days=${nextDays}`;
+      const response = await fetch(`/api/analytics-dashboard?${query}`, {
         headers: { Authorization: `Bearer ${nextPassword}` },
         cache: "no-store",
       });
@@ -345,7 +348,7 @@ export default function AnalyticsDashboardPage() {
     void loadDashboard(days, password);
   }
 
-  function changeDays(nextDays: number) {
+  function changeDays(nextDays: number | "since_update") {
     setDays(nextDays);
     if (password) void loadDashboard(nextDays, password);
   }
@@ -408,16 +411,18 @@ export default function AnalyticsDashboardPage() {
             <h1 className="mt-2 text-3xl font-black tracking-tight md:text-4xl">Conversion Analytics</h1>
             <p className="mt-2 text-sm text-gray-600">Updated {lastUpdated}</p>
             {data.period_start && data.period_end ? <p className="mt-1 text-xs text-gray-500">{data.period_start} – {data.period_end} · {data.time_zone}</p> : null}
+            {data.period_mode === "since_update" && data.measurement_started_at ? <p className="mt-2 text-xs text-purple-200">Nova medição desde {new Date(data.measurement_started_at).toLocaleString("pt-BR", { timeZone: data.time_zone || "UTC" })} · {data.time_zone || "UTC"}. Histórico preservado.</p> : null}
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            {[7, 30, 90].map((option) => (
+            {(["since_update", 7, 30, 90] as const).map((option) => (
               <button
                 key={option}
                 onClick={() => changeDays(option)}
+                disabled={loading}
                 className={`rounded-xl px-4 py-2 text-sm font-black ${days === option ? "bg-white text-black" : "border border-white/10 bg-white/[0.04] text-gray-400"}`}
               >
-                {option} days
+                {option === "since_update" ? "Desde a atualização" : `${option} days`}
               </button>
             ))}
             <button
@@ -442,7 +447,7 @@ export default function AnalyticsDashboardPage() {
         ) : null}
 
         <section className="mt-7 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <MetricCard label="Sessions" value={num(f.sessions)} note={`${data.period_days}-day period`} />
+          <MetricCard label="Sessions" value={num(f.sessions)} note={data.period_mode === "since_update" ? "Desde o início da nova medição" : `${data.period_days}-day period`} />
           <MetricCard label="Finder scans" value={num(f.scans)} note={`${pct(f.scan_rate)} of sessions`} />
           <MetricCard label="Routes available" value={num(f.route_available)} note="Sessions with at least one route" />
           <MetricCard label="Recovery completed" value={num(f.recovery_completed)} note={`${pct(f.total_recovery_rate)} of sessions`} />

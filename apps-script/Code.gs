@@ -54,6 +54,20 @@ function upgradeAnalyticsSchema() {
   return message;
 }
 
+/** Starts the new measurement period once. Re-running preserves the same cutoff. */
+function startAnalyticsPeriod() {
+  return withScriptLock(function () {
+    const properties = PropertiesService.getScriptProperties();
+    let start = properties.getProperty('ANALYTICS_PERIOD_START');
+    if (!start) {
+      start = new Date().toISOString();
+      properties.setProperty('ANALYTICS_PERIOD_START', start);
+    }
+    console.log('Measurement period starts at ' + start + '. Historical rows preserved.');
+    return start;
+  });
+}
+
 function ensureEventHeaders(sheet) {
   let headers = sheet.getLastRow() ? sheet.getRange(1, 1, 1, Math.max(1, sheet.getLastColumn())).getValues()[0].map(String) : [];
   while (headers.length && !headers[headers.length - 1]) headers.pop();
@@ -97,7 +111,7 @@ function doPost(e) {
     const secret = PropertiesService.getScriptProperties().getProperty('ANALYTICS_SHARED_SECRET');
     if (!secret || body.secret !== secret) return jsonResponse({ ok: false, error: 'Unauthorized' });
     if (body.action === 'event') { appendEvent(body.data || {}); return jsonResponse({ ok: true }); }
-    if (body.action === 'dashboard') return jsonResponse(buildDashboard(normalizeDays(body.days)));
+    if (body.action === 'dashboard') return jsonResponse(buildDashboard(normalizeDays(body.days), body.period));
     return jsonResponse({ ok: false, error: 'Unknown action' });
   } catch (error) {
     console.error(error);
@@ -134,11 +148,20 @@ function appendEvent(data) {
   });
 }
 
-function buildDashboard(requestedDays) {
-  const days = normalizeDays(requestedDays);
+function buildDashboard(requestedDays, requestedPeriod) {
+  let days = normalizeDays(requestedDays);
   const sheet = getEventsSheet(), timeZone = Session.getScriptTimeZone(), now = new Date();
+  const sinceUpdate = requestedPeriod === 'since_update';
+  const periodStart = sinceUpdate ? parseDate(PropertiesService.getScriptProperties().getProperty('ANALYTICS_PERIOD_START')) : null;
+  if (sinceUpdate && (!periodStart || periodStart.getTime() > now.getTime())) {
+    throw new Error('Execute startAnalyticsPeriod no Apps Script e atualize a implantação existente.');
+  }
   // Step through calendar dates, avoiding duplicate/skipped days at DST changes.
   const calendarAnchor = new Date(Utilities.formatDate(now, timeZone, 'yyyy-MM-dd') + 'T12:00:00.000Z');
+  if (periodStart) {
+    const firstDay = new Date(Utilities.formatDate(periodStart, timeZone, 'yyyy-MM-dd') + 'T12:00:00.000Z');
+    days = Math.round((calendarAnchor.getTime() - firstDay.getTime()) / 86400000) + 1;
+  }
   const dateKeys = [];
   for (let i = days - 1; i >= 0; i--) dateKeys.push(Utilities.formatDate(new Date(calendarAnchor.getTime() - i * 86400000), 'UTC', 'yyyy-MM-dd'));
   const daily = dict();
@@ -157,6 +180,7 @@ function buildDashboard(requestedDays) {
       const received = parseDate(get('timestamp')), client = parseDate(get('occurred_at'));
       const timestamp = client || received;
       if (!timestamp || timestamp.getTime() > now.getTime() + 60000) continue;
+      if (periodStart && timestamp.getTime() < periodStart.getTime()) continue;
       const date = Utilities.formatDate(timestamp, timeZone, 'yyyy-MM-dd');
       if (!daily[date]) continue;
       const event = text(get('event')), sessionId = text(get('session_id')) || 'legacy-row-' + r;
@@ -270,6 +294,8 @@ function buildDashboard(requestedDays) {
   return {
     ok: true, analytics_version: 3, generated_at: now.toISOString(), period_days: days,
     period_start: dateKeys[0], period_end: dateKeys[dateKeys.length - 1], time_zone: timeZone,
+    period_mode: sinceUpdate ? 'since_update' : 'days',
+    measurement_started_at: periodStart ? periodStart.toISOString() : null,
     funnel: funnel, journey: journey, operation_totals: operationTotals, data_quality: quality,
     failure_reasons: reasonRows(failures), cancellation_reasons: reasonRows(cancellations),
     daily: dateKeys.map(function (date) { const day = daily[date]; return { date: date, sessions: sizeOf(day.any), scans: sizeOf(day.scans), assets_found: sizeOf(day.assets), asset_selected: sizeOf(day.selected), route_available: sizeOf(day.route), recovery_completed: sizeOf(day.recovered) }; }),
