@@ -339,8 +339,10 @@ export default function AppPortal() {
   const walletHandoffScanStarted = useRef(false);
   const pendingHandoffAsset = useRef('');
   const [relayerOverride, setRelayerOverride] = useState<boolean | null>(null);
-  // Padrao inalterado (assinatura Permit2 quando a rota suporta). O usuario pode trocar para approve normal se travar.
-  const relayerOn = relayerOverride ?? true;
+  // Mobile uses standard approval routes for wallet-signing compatibility; desktop keeps relayer routes.
+  // The explicit override remains available and takes precedence on either device.
+  const isMobileDevice = typeof navigator !== 'undefined' && /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent || '');
+  const relayerOn = relayerOverride ?? !isMobileDevice;
   const recoverySectionRef = useRef<HTMLDivElement | null>(null);
   const [routePreflight, setRoutePreflight] = useState<PreflightState>({ status: 'idle' });
   const [recoveryWidgetNonce, setRecoveryWidgetNonce] = useState(0);
@@ -1046,34 +1048,13 @@ export default function AppPortal() {
                             {recoveryState.status === 'completed' && <div className="mt-3 flex flex-wrap items-center gap-3"><button onClick={() => { void chooseAnotherAsset(); }} disabled={refreshingFinderBalances} className="min-h-11 rounded-lg bg-purple-600 px-4 text-sm text-white disabled:opacity-40">{refreshingFinderBalances ? "Refreshing…" : "Check another asset"}</button><button onClick={shareRecovery} className="min-h-11 rounded-lg border border-white/20 px-4 text-sm">Share recovery</button><span>{shareMessage}</span></div>}
                           </div>
                         )}
-                        {!isWalletBrowser && <section className="mobile-wallet-handoff my-3 rounded-2xl border border-violet-400/25 bg-[#100d1c] p-4 sm:hidden" aria-label="Continue in wallet">
-                          <h3 className="text-base font-semibold text-white">Finish in your wallet</h3>
-                          <p className="mt-1 text-sm leading-5 text-gray-300">On iPhone, switching networks can return you to Chrome without opening the approval screen. Open Dust Sweeper in your wallet: your scan and this token come with you, so you only review and confirm there.</p>
-                          <div className="mt-3 grid grid-cols-1 gap-2">
-                            {([['metamask', 'Open in MetaMask'], ['trust', 'Open in Trust Wallet'], ['coinbase', 'Open in Coinbase Wallet']] as const).map(([app, label], index) => (
-                              <a key={app} href={walletHandoffUrl(app, finderAddress, selectedRecoveryToken ? tokenHandoffKey(selectedRecoveryToken) : '')} target="_blank" rel="noopener noreferrer"
-                                onClick={() => trackDustEvent('open_in_wallet_clicked', { feature: 'finder', wallet: app, device: 'mobile_browser' })}
-                                className={`flex min-h-12 items-center justify-center rounded-xl px-4 py-3 text-sm font-semibold text-white ${index === 0 ? 'bg-violet-600' : 'border border-white/15 bg-white/5'}`}>{label}</a>
-                            ))}
-                          </div>
-                          <p className="mt-3 text-xs leading-4 text-gray-500">Other wallet? Open its built-in browser and visit dustsweepertool.com. Only approve transactions you recognize.</p>
-                        </section>}
-                        <div className={isWalletBrowser ? "lifi-widget-shell mt-3 min-w-0 rounded-[24px] border border-white/10 bg-[#09090b]" : "lifi-widget-shell mt-3 hidden min-w-0 rounded-[24px] border border-white/10 bg-[#09090b] sm:block"}>
+                        <div className="mobile-wallet-handoff my-3 rounded-xl border border-violet-400/20 bg-[#100d1c] p-3 text-sm text-gray-300 sm:hidden">
+                          Connect your wallet directly in the widget below. On mobile, standard approval routes are preferred for wallet compatibility.
+                        </div>
+<div className="lifi-widget-shell mt-3 min-w-0 rounded-[24px] border border-white/10 bg-[#09090b]">
                           <LiFiWidget key={`${getTokenChainId(selectedRecoveryToken)}-${getTokenAddress(selectedRecoveryToken)}-${recoveryWidgetNonce}`} integrator="DustSweeper" config={finderConfig as any} />
                         </div>
-                        <div role="note" className="mt-3 rounded-xl border border-amber-400/20 bg-amber-400/[0.06] p-3 text-xs leading-5 text-gray-300">
-                          <p className="font-semibold text-amber-200">If this token cannot be recovered</p>
-                          <p className="mt-1">A route can fail because of the token contract, available balance, or route simulation. This does not necessarily mean Dust Sweeper is broken. Check the wallet balance and network, then try another available asset. Never approve a transaction you do not recognize.</p>
-                        </div>
-                        <div className="mt-3 text-sm text-gray-300">
-                          <details className="rounded-xl border border-white/10 px-4 open:pb-4">
-                            <summary className="min-h-11 cursor-pointer content-center font-medium text-gray-300">About fees and wallet confirmation</summary>
-                            <p className="mt-2 leading-6">Connecting a wallet does not complete a recovery. You review permissions and confirm each required step in your own wallet. LI.FI displays the current destination, estimated output and costs. Network gas may be charged separately.</p>
-                            <p className="mt-2 leading-6">The amount starts slightly below the scanned balance. That buffer is not a gas estimate. Review the final amount in the widget, especially for native currencies.</p>
-                            <p className="mt-2 leading-6"><a href="/faq" target="_blank" rel="noopener noreferrer" className="text-purple-300 underline underline-offset-4">Fee details and FAQ</a><span aria-hidden="true"> &middot; </span><a href="/terms" target="_blank" rel="noopener noreferrer" className="text-purple-300 underline underline-offset-4">Terms</a></p>
-                          </details>
-                        </div>
-                        {!widgetEdited && ['incomplete', 'wrong-network', 'simulation-failed', 'insufficient-gas', 'no-route', 'error'].includes(routePreflight.status) && (
+                                                {!widgetEdited && ['incomplete', 'wrong-network', 'simulation-failed', 'insufficient-gas', 'no-route', 'error'].includes(routePreflight.status) && (
                           <div className="mt-3 rounded-xl border border-white/10 p-4 text-sm text-gray-400">
                             <details><summary className="min-h-11 cursor-pointer content-center font-semibold text-gray-200">Initial check details (optional)</summary>
                             <p className="mt-1">{routePreflight.message}</p>
