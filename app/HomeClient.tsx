@@ -332,6 +332,7 @@ export default function AppPortal() {
   const [portfolioError, setPortfolioError] = useState('');
   const [selectedRecoveryToken, setSelectedRecoveryToken] = useState<any | null>(null);
   const [isWalletBrowser, setIsWalletBrowser] = useState(false);
+  const walletHandoffScanStarted = useRef(false);
   const recoverySectionRef = useRef<HTMLDivElement | null>(null);
   const [routePreflight, setRoutePreflight] = useState<PreflightState>({ status: 'idle' });
   const [recoveryWidgetNonce, setRecoveryWidgetNonce] = useState(0);
@@ -605,10 +606,10 @@ export default function AppPortal() {
     return '';
   };
 
-  const handleScan = async () => {
+  const handleScan = async (addressOverride?: string) => {
     if (scanInFlight.current || executionBusy) return;
-    if (!isValidAddress(userAddressInput)) { setScanError('Enter a valid public EVM wallet address starting with 0x.'); return; }
-    const address = userAddressInput.trim();
+    const address = (addressOverride ?? userAddressInput).trim();
+    if (!isValidAddress(address)) { setScanError('Enter a valid public EVM wallet address starting with 0x.'); return; }
     scanInFlight.current = true;
     setScanError(''); setScanWarning(''); setScanStep('scanning');
     trackDustEvent('wallet_scan_started', { feature: 'finder', language: getBrowserLanguage() });
@@ -633,6 +634,23 @@ export default function AppPortal() {
       setSelectedRecoveryToken(null); setWidgetEdited(false); setScanStep('result');
     } finally { scanInFlight.current = false; }
   };
+
+  // Restore the public wallet address from the wallet deep link and scan
+  // automatically inside the wallet browser, so the user does not need to
+  // manually repeat the scan performed in Chrome.
+  useEffect(() => {
+    if (!isWalletBrowser || walletHandoffScanStarted.current) return;
+    const params = new URLSearchParams(window.location.search);
+    const handoffAddress = params.get('wallet');
+    if (!handoffAddress || !isValidAddress(handoffAddress)) return;
+    walletHandoffScanStarted.current = true;
+    setUserAddressInput(handoffAddress);
+    params.delete('wallet');
+    const remainingQuery = params.toString();
+    const cleanUrl = window.location.pathname + (remainingQuery ? `?${remainingQuery}` : '') + window.location.hash;
+    window.history.replaceState({}, '', cleanUrl);
+    void handleScan(handoffAddress);
+  }, [isWalletBrowser]);
 
   const canLeaveRecovery = () => {
     if (executionBusy) return false;
@@ -1006,9 +1024,9 @@ export default function AppPortal() {
                           <h3 className="text-base font-semibold text-white">Finish in your wallet</h3>
                           <p className="mt-1 text-sm leading-5 text-gray-300">On iPhone, switching networks can return you to Chrome without opening the approval screen. Open Dust Sweeper in your wallet first, then choose this token and continue there.</p>
                           <div className="mt-3 grid grid-cols-1 gap-2">
-                            <a href="https://metamask.app.link/dapp/dustsweepertool.com" target="_blank" rel="noopener noreferrer" className="flex min-h-12 items-center justify-center rounded-xl bg-violet-600 px-4 py-3 text-sm font-semibold text-white">Open in MetaMask</a>
-                            <a href="https://link.trustwallet.com/open_url?url=https%3A%2F%2Fdustsweepertool.com" target="_blank" rel="noopener noreferrer" className="flex min-h-12 items-center justify-center rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm font-semibold text-white">Open in Trust Wallet</a>
-                            <a href="https://go.cb-w.com/dapp?cb_url=https%3A%2F%2Fdustsweepertool.com" target="_blank" rel="noopener noreferrer" className="flex min-h-12 items-center justify-center rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm font-semibold text-white">Open in Coinbase Wallet</a>
+                            <a href={`https://metamask.app.link/dapp/dustsweepertool.com${finderAddress ? `?wallet=${encodeURIComponent(finderAddress)}` : ''}`} target="_blank" rel="noopener noreferrer" className="flex min-h-12 items-center justify-center rounded-xl bg-violet-600 px-4 py-3 text-sm font-semibold text-white">Open in MetaMask</a>
+                            <a href={`https://link.trustwallet.com/open_url?url=${encodeURIComponent(`https://dustsweepertool.com/${finderAddress ? `?wallet=${encodeURIComponent(finderAddress)}` : ''}`)}`} target="_blank" rel="noopener noreferrer" className="flex min-h-12 items-center justify-center rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm font-semibold text-white">Open in Trust Wallet</a>
+                            <a href={`https://go.cb-w.com/dapp?cb_url=${encodeURIComponent(`https://dustsweepertool.com/${finderAddress ? `?wallet=${encodeURIComponent(finderAddress)}` : ''}`)}`} target="_blank" rel="noopener noreferrer" className="flex min-h-12 items-center justify-center rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm font-semibold text-white">Open in Coinbase Wallet</a>
                           </div>
                           <p className="mt-3 text-xs leading-4 text-gray-500">Other wallet? Open its built-in browser and visit dustsweepertool.com. Only approve transactions you recognize.</p>
                         </section>}
