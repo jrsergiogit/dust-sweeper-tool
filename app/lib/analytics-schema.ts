@@ -12,12 +12,13 @@ export const ALLOWED_EVENTS = new Set([
   'safety_trade_route_available', 'safety_trade_route_selected', 'safety_trade_execution_started', 'safety_trade_execution_failed', 'safety_trade_cancelled', 'safety_trade_completed',
   'wallet_confirmation_requested', 'token_approval_requested', 'token_approval_confirmed', 'transaction_submitted', 'transaction_confirmed',
   'route_high_value_loss', 'recovery_source_changed',
+  'wallet_prompt_stuck_shown', 'wallet_prompt_mode_switched', 'open_in_wallet_clicked',
 ]);
 const PROPERTY_KEYS = new Set([
   'feature', 'language', 'result', 'chain_id', 'to_chain_id', 'route_status', 'route_tool', 'quote_status',
   'error_category', 'asset_bucket', 'value_bucket', 'dust_value_bucket', 'operation_id', 'stage',
   'route_count', 'start_observed', 'partial_execution', 'analytics_version', 'has_ad_click', 'output_value_bucket',
-  'partial_results', 'failed_network_count', 'source', 'wallet_check',
+  'partial_results', 'failed_network_count', 'source', 'wallet_check', 'mode', 'device', 'wallet',
 ]);
 export function cleanText(value: unknown, max = 140): string {
   if (typeof value !== 'string') return '';

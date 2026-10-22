@@ -63,3 +63,8 @@ summary { list-style-position: inside; }
     touch-action: manipulation;
   }
 }
+
+/* Mobile: sem zoom automatico de texto, toque rapido e area segura (notch/barra do navegador) */
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+button, a, summary { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+body { padding-bottom: env(safe-area-inset-bottom); }

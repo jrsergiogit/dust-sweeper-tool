@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import CleanUrl from "./CleanUrl";
 import PageAnalytics from "./components/PageAnalytics";
@@ -6,6 +6,13 @@ import { ATTRIBUTION_BOOTSTRAP } from "./lib/attribution-bootstrap";
 import Header from "./components/Header";
 import SiteFooter from "./components/SiteFooter";
 import Script from "next/script"; // Importante para as tags do Google
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: "#060609",
+};
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://dustsweepertool.com"),

@@ -14,6 +14,13 @@
 - [Privacy](https://dustsweepertool.com/privacy): privacy information.
 - [Terms](https://dustsweepertool.com/terms): terms of use.
 
+## Key facts
+
+- Free to scan. Networks scanned: Ethereum, BNB Smart Chain, Polygon, Arbitrum, Base, Optimism and Avalanche.
+- Swaps, bridges and recovery routes are provided by LI.FI. Dust recovery routes include a 5% service fee; the standard swap and bridge widgets include a 1% service fee. Network gas and route costs are extra and shown before confirming.
+- Non-custodial: the tool never holds funds, seed phrases or private keys. Transactions are signed in the user's own wallet and cannot be reversed once confirmed.
+- On phones, the most reliable way to approve a transaction is to open the site inside the wallet app's built-in browser (MetaMask, Trust Wallet or Coinbase Wallet).
+
 ## Product and safety notes
 
 - The wallet scanner uses public wallet-address information; a seed phrase or private key should never be required.
