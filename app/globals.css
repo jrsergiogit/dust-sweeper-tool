@@ -49,18 +49,12 @@ summary { list-style-position: inside; }
   min-width: 0;
   max-width: 100%;
 }
-.wallet-mobile-help {
-  overflow-wrap: anywhere;
-}
 @media (max-width: 640px) {
   .lifi-widget-shell {
     border-radius: 16px;
     margin-inline: 0;
   }
-  .wallet-mobile-help {
-    padding: 14px;
-  }
-  /* Keep controls usable on narrow screens and prevent long token/address
+/* Keep controls usable on narrow screens and prevent long token/address
      strings from expanding the layout. */
   main, section, article {
     min-width: 0;
