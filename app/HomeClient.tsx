@@ -963,20 +963,18 @@ export default function AppPortal() {
                             {recoveryState.status === 'completed' && <div className="mt-3 flex flex-wrap items-center gap-3"><button onClick={chooseAnotherAsset} className="min-h-11 rounded-lg bg-purple-600 px-4 text-sm text-white">Check another asset</button><button onClick={shareRecovery} className="min-h-11 rounded-lg border border-white/20 px-4 text-sm">Share recovery</button><span>{shareMessage}</span></div>}
                           </div>
                         )}
-                        <section aria-label="Mobile wallet approval help" className="wallet-mobile-help mt-4 rounded-2xl border border-violet-400/25 bg-violet-500/[0.07] p-4 sm:p-5">
-                          <div className="flex items-start gap-3">
-                            <span aria-hidden="true" className="text-xl">📱</span>
-                            <div className="min-w-0 flex-1">
-                              <h3 className="text-sm font-bold text-white sm:text-base">Confirm in your wallet</h3>
-                              <p className="mt-1 text-sm leading-6 text-gray-300">After you choose an operation, open your wallet app and look for a pending request. The confirmation button is inside the wallet, not on this page.</p>
-                              <ol className="mt-3 list-decimal space-y-1.5 pl-5 text-sm leading-5 text-gray-400">
-                                <li>Keep this page open while the request is pending.</li>
-                                <li>Switch to MetaMask and check its activity or pending confirmation screen.</li>
-                                <li>If no request appears, return here and reconnect. On mobile, opening this site in MetaMask’s in-app browser can make wallet handoff more reliable.</li>
-                              </ol>
-                              <p className="mt-3 text-xs leading-5 text-gray-500">Never approve an unfamiliar request or share your recovery phrase. If the wallet shows no request, do not keep waiting on this page.</p>
-                            </div>
-                          </div>
+                        <section aria-label="Wallet approval help" className="wallet-mobile-help mt-3 rounded-xl border border-violet-400/20 bg-violet-500/[0.05] p-3 sm:p-4">
+                          <h3 className="text-sm font-semibold text-white">Waiting for wallet approval?</h3>
+                          <p className="mt-1 text-sm leading-5 text-gray-300">The confirmation should appear in your wallet. If it does not, reopen this page in MetaMask and retry.</p>
+                          <a
+                            href="https://metamask.app.link/dapp/dustsweepertool.com"
+                            className="mt-3 inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-violet-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-300 sm:w-auto"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            Continue in MetaMask
+                          </a>
+                          <p className="mt-2 text-xs leading-4 text-gray-500">Only confirm transactions you recognize. Never share your recovery phrase.</p>
                         </section>
                         <div className="lifi-widget-shell mt-3 min-w-0 rounded-[24px] border border-white/10 bg-[#09090b]">
                           <LiFiWidget key={`${getTokenChainId(selectedRecoveryToken)}-${getTokenAddress(selectedRecoveryToken)}-${recoveryWidgetNonce}`} integrator="DustSweeper" config={finderConfig as any} />
