@@ -1033,6 +1033,10 @@ export default function AppPortal() {
                         <div className={isWalletBrowser ? "lifi-widget-shell mt-3 min-w-0 rounded-[24px] border border-white/10 bg-[#09090b]" : "lifi-widget-shell mt-3 hidden min-w-0 rounded-[24px] border border-white/10 bg-[#09090b] sm:block"}>
                           <LiFiWidget key={`${getTokenChainId(selectedRecoveryToken)}-${getTokenAddress(selectedRecoveryToken)}-${recoveryWidgetNonce}`} integrator="DustSweeper" config={finderConfig as any} />
                         </div>
+                        <div role="note" className="mt-3 rounded-xl border border-amber-400/20 bg-amber-400/[0.06] p-3 text-xs leading-5 text-gray-300">
+                          <p className="font-semibold text-amber-200">If this token cannot be recovered</p>
+                          <p className="mt-1">A route can fail because of the token contract, available balance, or route simulation. This does not necessarily mean Dust Sweeper is broken. Check the wallet balance and network, then try another available asset. Never approve a transaction you do not recognize.</p>
+                        </div>
                         {!widgetEdited && ['incomplete', 'wrong-network', 'simulation-failed', 'insufficient-gas', 'no-route', 'error'].includes(routePreflight.status) && (
                           <div className="mt-3 rounded-xl border border-white/10 p-4 text-sm text-gray-400">
                             <details><summary className="min-h-11 cursor-pointer content-center font-semibold text-gray-200">Initial check details (optional)</summary>
