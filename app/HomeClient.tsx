@@ -314,6 +314,12 @@ const EMPTY_WIDGET_STATE: WidgetState = { status: 'idle', message: '', busy: fal
 
 export default function AppPortal() {
   const [activeTab, setActiveTab] = useState('finder');
+  const [isWalletBrowser, setIsWalletBrowser] = useState(false);
+
+  useEffect(() => {
+    const ua = window.navigator.userAgent || '';
+    setIsWalletBrowser(/MetaMask|TrustWallet|CoinbaseWallet|Coinbase|TokenPocket|imToken|OKApp|Rainbow/i.test(ua));
+  }, []);
 
   // Finder
   const [scanStep, setScanStep] = useState<'initial' | 'scanning' | 'result'>('initial');
