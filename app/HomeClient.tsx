@@ -638,7 +638,6 @@ export default function AppPortal() {
     setRefreshingFinderBalances(true);
     setScanWarning('');
     try {
-      // Re-query the same wallet after a recovery so zero-balance assets disappear.
       const result = await fetchRealBalances(finderAddress);
       if (result?.error) {
         setScanWarning(`Could not refresh wallet balances. Showing the previous scan results. ${result.error}`);
@@ -646,7 +645,6 @@ export default function AppPortal() {
         const hasIncompleteNetworks = Array.isArray(result?.failedNetworks) && result.failedNetworks.length > 0;
         const incomplete = hasIncompleteNetworks || Boolean(result?.moreResults) || Boolean(result?.partial);
         if (incomplete) {
-          // Never remove assets based on a partial scan.
           setScanWarning('Wallet balances could not be fully refreshed. Showing the previous scan results; try a new scan shortly.');
         } else {
           const freshAssets = Array.isArray(result?.tokens) ? result.tokens.filter(hasPositiveWalletBalance) : [];
@@ -990,7 +988,17 @@ export default function AppPortal() {
                             {recoveryState.status === 'completed' && <div className="mt-3 flex flex-wrap items-center gap-3"><button onClick={() => { void chooseAnotherAsset(); }} disabled={refreshingFinderBalances} className="min-h-11 rounded-lg bg-purple-600 px-4 text-sm text-white disabled:opacity-40">{refreshingFinderBalances ? "Refreshing…" : "Check another asset"}</button><button onClick={shareRecovery} className="min-h-11 rounded-lg border border-white/20 px-4 text-sm">Share recovery</button><span>{shareMessage}</span></div>}
                           </div>
                         )}
-                        <div className="lifi-widget-shell mt-3 min-w-0 rounded-[24px] border border-white/10 bg-[#09090b]">
+                        <section className="mobile-wallet-handoff my-3 rounded-2xl border border-violet-400/25 bg-[#100d1c] p-4 sm:hidden" aria-label="Continue in wallet">
+                          <h3 className="text-base font-semibold text-white">Finish in your wallet</h3>
+                          <p className="mt-1 text-sm leading-5 text-gray-300">On iPhone, switching networks can return you to Chrome without opening the approval screen. Open Dust Sweeper in your wallet first, then choose this token and continue there.</p>
+                          <div className="mt-3 grid grid-cols-1 gap-2">
+                            <a href="https://metamask.app.link/dapp/dustsweepertool.com" target="_blank" rel="noopener noreferrer" className="flex min-h-12 items-center justify-center rounded-xl bg-violet-600 px-4 py-3 text-sm font-semibold text-white">Open in MetaMask</a>
+                            <a href="https://link.trustwallet.com/open_url?url=https%3A%2F%2Fdustsweepertool.com" target="_blank" rel="noopener noreferrer" className="flex min-h-12 items-center justify-center rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm font-semibold text-white">Open in Trust Wallet</a>
+                            <a href="https://go.cb-w.com/dapp?cb_url=https%3A%2F%2Fdustsweepertool.com" target="_blank" rel="noopener noreferrer" className="flex min-h-12 items-center justify-center rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm font-semibold text-white">Open in Coinbase Wallet</a>
+                          </div>
+                          <p className="mt-3 text-xs leading-4 text-gray-500">Other wallet? Open its built-in browser and visit dustsweepertool.com. Only approve transactions you recognize.</p>
+                        </section>
+                        <div className="lifi-widget-shell mt-3 hidden min-w-0 rounded-[24px] border border-white/10 bg-[#09090b] sm:block">
                           <LiFiWidget key={`${getTokenChainId(selectedRecoveryToken)}-${getTokenAddress(selectedRecoveryToken)}-${recoveryWidgetNonce}`} integrator="DustSweeper" config={finderConfig as any} />
                         </div>
                         {!widgetEdited && ['incomplete', 'wrong-network', 'simulation-failed', 'insufficient-gas', 'no-route', 'error'].includes(routePreflight.status) && (
