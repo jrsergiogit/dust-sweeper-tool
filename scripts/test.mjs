@@ -237,11 +237,11 @@ await test('Advertising identifiers stay out of the custom analytics payload',as
 });
 
 // Structural UI assertions execute the real component with mock React hooks (not a browser or visual test).
-const portalSource=fs.readFileSync(path.join(root,'app/page.tsx'),'utf8');
+const portalSource=fs.readFileSync(path.join(root,'app/HomeClient.tsx'),'utf8');
 const hookNames=[...portalSource.matchAll(/const \[([A-Za-z0-9_]+),[^\n]*?= useState(?:<[^\n]*>)?\(/g)].map(m=>m[1]);
 let hookIndex=0,override={},setValues={};
 reactMock={useEffect:()=>{},useMemo:f=>f(),useRef:x=>({current:x}),useState(init){const key=hookNames[hookIndex++];return [Object.prototype.hasOwnProperty.call(override,key)?override[key]:typeof init==='function'?init():init,v=>{setValues[key]=v;}];}};
-const Portal=load('app/page.tsx').default;
+const Portal=load('app/HomeClient.tsx').default;
 function render(values={}){hookIndex=0;override=values;setValues={};return Portal();}
 function nodes(root){if(root===null||root===undefined||typeof root==='boolean')return[];if(Array.isArray(root))return root.flatMap(nodes);if(typeof root!=='object')return[root];return[root,...nodes(root.props?.children)];}
 const asset={chainId:56,tokenAddress:input.fromToken,symbol:'TEST',name:'Test',rawBalance:'1234567',balance:1.234567,decimals:6,priceUsd:1,valueUsd:1.23};

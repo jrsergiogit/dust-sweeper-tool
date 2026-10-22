@@ -1,0 +1,265 @@
+{
+  "createdAt": "2026-10-22T14:42:10.808Z",
+  "node": "v22.16.0",
+  "passed": 64,
+  "failed": 0,
+  "scope": "Local regression tests, mocked framework/provider boundaries, structural JSX checks and source transpilation. Not a production build, visual browser test or real transaction.",
+  "results": [
+    {
+      "name": "All TypeScript/TSX source files transpile without syntax errors",
+      "passed": true
+    },
+    {
+      "name": "Commission wallet and fee policy remain unchanged",
+      "passed": true
+    },
+    {
+      "name": "Exact 6-decimal amount shared by preflight and widget",
+      "passed": true
+    },
+    {
+      "name": "Large, small, scientific and hex balances retain integer precision",
+      "passed": true
+    },
+    {
+      "name": "No hidden USD floor; buffered amounts never exceed available units",
+      "passed": true
+    },
+    {
+      "name": "Analytics buckets contain ranges, not exact wallet holdings",
+      "passed": true
+    },
+    {
+      "name": "Zero recoveries produce zero chart height",
+      "passed": true
+    },
+    {
+      "name": "A displayed route is distinct from an execution or completion",
+      "passed": true
+    },
+    {
+      "name": "Changed source token and absent external selection do not discard completion",
+      "passed": true
+    },
+    {
+      "name": "Route ownership survives tab changes and duplicate completion events",
+      "passed": true
+    },
+    {
+      "name": "Completion without observed start is recorded and explicitly marked",
+      "passed": true
+    },
+    {
+      "name": "Route refresh cannot unlock controls during an active transaction",
+      "passed": true
+    },
+    {
+      "name": "User cancellation, insufficient gas and reverts are distinct",
+      "passed": true
+    },
+    {
+      "name": "Partial cross-chain completion warns and does not auto-restart",
+      "passed": true
+    },
+    {
+      "name": "Approvals and transfer submission are measured separately from recovery",
+      "passed": true
+    },
+    {
+      "name": "Incomplete transaction data is never labelled ready",
+      "passed": true
+    },
+    {
+      "name": "No provider does not imply that token approval is required",
+      "passed": true
+    },
+    {
+      "name": "Wrong-network provider receives no eth_call or gas estimate",
+      "passed": true
+    },
+    {
+      "name": "Preflight never asks for connection, approval or signatures",
+      "passed": true
+    },
+    {
+      "name": "The network is rechecked before gas simulation",
+      "passed": true
+    },
+    {
+      "name": "Obsolete asynchronous quote is discarded after cancellation",
+      "passed": true
+    },
+    {
+      "name": "Native coin does not request a same-token same-chain quote",
+      "passed": true
+    },
+    {
+      "name": "Sensitive arbitrary analytics fields are rejected and formulas escaped",
+      "passed": true
+    },
+    {
+      "name": "Quote API keeps the key server-side and fixes fee/destination policy",
+      "passed": true
+    },
+    {
+      "name": "Quote API rejects invalid chains, zero amounts, native self-swaps and foreign origin",
+      "passed": true
+    },
+    {
+      "name": "Alchemy partial-network failures preserve successful assets",
+      "passed": true
+    },
+    {
+      "name": "Campaign and gclid are captured before CleanUrl; tool and Google linker remain",
+      "passed": true
+    },
+    {
+      "name": "Self-referrals are not classified as an external traffic source",
+      "passed": true
+    },
+    {
+      "name": "Advertising identifiers stay out of the custom analytics payload",
+      "passed": true
+    },
+    {
+      "name": "Initial UX contains no fake recoverable $0 and no LI.FI widget",
+      "passed": true
+    },
+    {
+      "name": "Scan results without a selected asset do not render a recovery widget",
+      "passed": true
+    },
+    {
+      "name": "Selected asset mounts one widget with the exact amount and unchanged fee",
+      "passed": true
+    },
+    {
+      "name": "Native selection requires choosing a destination instead of self-swapping",
+      "passed": true
+    },
+    {
+      "name": "Returning to Finder does not reset the scan results",
+      "passed": true
+    },
+    {
+      "name": "Sharing appears after completion, not immediately after the scan",
+      "passed": true
+    },
+    {
+      "name": "Price filters really filter without hiding unpriced assets by default",
+      "passed": true
+    },
+    {
+      "name": "Token search, network filter and sort preserve stable object identity",
+      "passed": true
+    },
+    {
+      "name": "Positive dust quantities do not display as zero",
+      "passed": true
+    },
+    {
+      "name": "Selecting an asset hides the results list but preserves the selected widget",
+      "passed": true
+    },
+    {
+      "name": "The existing LI.FI environment key is read only in the server fallback",
+      "passed": true
+    },
+    {
+      "name": "Local previews do not send analytics or ad conversion events",
+      "passed": true
+    },
+    {
+      "name": "Sheets transport preserves existing fields and forwards v3 event identity and time",
+      "passed": true
+    },
+    {
+      "name": "New measurement marker is stable and never changes historical rows or credentials",
+      "passed": true
+    },
+    {
+      "name": "Since-update filter respects the exact timestamp, client time and retains full history in day filters",
+      "passed": true
+    },
+    {
+      "name": "Since-update requires a configured marker and supports an empty new period",
+      "passed": true
+    },
+    {
+      "name": "Since-update period continues beyond 365 days without silently dropping its beginning",
+      "passed": true
+    },
+    {
+      "name": "Dashboard API forwards the selected period and rejects an old backend for since-update requests",
+      "passed": true
+    },
+    {
+      "name": "Analytics migration appends columns without changing historical rows, settings or custom columns",
+      "passed": true
+    },
+    {
+      "name": "Analytics migration rejects incompatible headers before writing and releases its lock",
+      "passed": true
+    },
+    {
+      "name": "Analytics persists execution stage, reason, operation ID, false and zero without sensitive fields",
+      "passed": true
+    },
+    {
+      "name": "Analytics keeps existing authentication and does not append unauthorized events",
+      "passed": true
+    },
+    {
+      "name": "Analytics deduplicates event IDs and repeated session stages without merging distinct operations",
+      "passed": true
+    },
+    {
+      "name": "Conversion requires chronological events in the same session and matches execution operation IDs",
+      "passed": true
+    },
+    {
+      "name": "Client occurrence time restores execution order when requests arrive out of order",
+      "passed": true
+    },
+    {
+      "name": "Approval transactions are not recovery transfers and approval remains optional",
+      "passed": true
+    },
+    {
+      "name": "Swap, bridge and unclassified generic transactions cannot inflate Finder execution",
+      "passed": true
+    },
+    {
+      "name": "Failures and cancellations are separated by reason and retries may later succeed",
+      "passed": true
+    },
+    {
+      "name": "Original 21-column history remains readable without fabricated operation or transfer details",
+      "passed": true
+    },
+    {
+      "name": "Finder buckets use the first Finder scan rather than portfolio values or a later scan",
+      "passed": true
+    },
+    {
+      "name": "Attribution waits for real values and selected tools count unique selection sessions only",
+      "passed": true
+    },
+    {
+      "name": "Calendar window includes the first full local day and excludes older records",
+      "passed": true
+    },
+    {
+      "name": "Calendar dates remain consecutive through daylight-saving transitions",
+      "passed": true
+    },
+    {
+      "name": "API forwards valid client times and clears invalid, future and excessively old times",
+      "passed": true
+    },
+    {
+      "name": "Dashboard renders all execution stages, optional approvals and separate outcome reasons",
+      "passed": true
+    }
+  ]
+}

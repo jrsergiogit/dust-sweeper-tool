@@ -10,10 +10,6 @@ import Script from "next/script"; // Importante para as tags do Google
 export const metadata: Metadata = {
   metadataBase: new URL("https://dustsweepertool.com"),
   
-  alternates: {
-    canonical: 'https://dustsweepertool.com',
-  },
-
   title: "Dust Sweeper Tool: Find Forgotten Crypto & Crypto Dust",
   description: "Free non-custodial wallet scanner that finds small and forgotten token balances on 7 networks, checks contract risk signals and compares swap and bridge routes.",
   applicationName: "Dust Sweeper Tool",

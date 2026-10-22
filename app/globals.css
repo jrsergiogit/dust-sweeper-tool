@@ -34,3 +34,38 @@ summary { list-style-position: inside; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
 }
+
+
+/* Mobile transaction UX: keep the LI.FI widget inside the viewport without
+   clipping its internal dialogs or wallet hand-off surfaces. */
+.lifi-widget-shell {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  overflow: visible;
+  isolation: isolate;
+}
+.lifi-widget-shell > * {
+  min-width: 0;
+  max-width: 100%;
+}
+.wallet-mobile-help {
+  overflow-wrap: anywhere;
+}
+@media (max-width: 640px) {
+  .lifi-widget-shell {
+    border-radius: 16px;
+    margin-inline: 0;
+  }
+  .wallet-mobile-help {
+    padding: 14px;
+  }
+  /* Keep controls usable on narrow screens and prevent long token/address
+     strings from expanding the layout. */
+  main, section, article {
+    min-width: 0;
+  }
+  button, [role="button"] {
+    touch-action: manipulation;
+  }
+}
