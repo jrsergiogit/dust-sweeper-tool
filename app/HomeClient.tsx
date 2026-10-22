@@ -336,6 +336,7 @@ export default function AppPortal() {
   const [finderAddress, setFinderAddress] = useState('');
   const [scanError, setScanError] = useState('');
   const [scanWarning, setScanWarning] = useState('');
+  const [refreshingFinderAssets, setRefreshingFinderAssets] = useState(false);
   const [portfolioWarning, setPortfolioWarning] = useState('');
   const [portfolioScanned, setPortfolioScanned] = useState(false);
   const [widgetEdited, setWidgetEdited] = useState(false);
@@ -630,8 +631,31 @@ export default function AppPortal() {
     setScanError(''); setScanWarning(''); setShareMessage('');
     setWidgetStates(current => ({ ...current, finder: EMPTY_WIDGET_STATE }));
   };
-  const chooseAnotherAsset = () => {
+  const chooseAnotherAsset = async () => {
     if (!canLeaveRecovery()) return;
+    // Refresh the same wallet before showing the asset list again. This avoids
+    // offering a token whose balance changed during the completed recovery.
+    const address = finderAddress.trim();
+    if (address && isValidAddress(address)) {
+      setRefreshingFinderAssets(true);
+      try {
+        const result = await fetchRealBalances(address);
+        if (!result?.error && Array.isArray(result?.tokens)) {
+          const freshAssets = result.tokens.filter(hasPositiveWalletBalance);
+          setFoundTokens(freshAssets);
+          setFoundBalance(formatUsd(getPricedAssetsValue(freshAssets)));
+          setScanWarning(scanWarningText(result));
+          setAssetFilter('all'); setAssetSearch(''); setAssetNetwork('all');
+        } else {
+          // Keep the last known results if the provider is temporarily unavailable.
+          setScanWarning(`${result?.error || 'Could not refresh wallet balances.'} Showing the previous scan results; please scan again to update them.`);
+        }
+      } catch {
+        setScanWarning('Could not refresh wallet balances. Showing the previous scan results; please scan again to update them.');
+      } finally {
+        setRefreshingFinderAssets(false);
+      }
+    }
     setSelectedRecoveryToken(null); setWidgetEdited(false); setRoutePreflight({ status: 'idle' });
     setWidgetStates(current => ({ ...current, finder: EMPTY_WIDGET_STATE }));
     window.setTimeout(() => assetListRef.current?.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' }), 0);
@@ -943,7 +967,7 @@ export default function AppPortal() {
                             <p className="mt-1 break-words text-lg font-bold text-white">{getTokenDisplay(selectedRecoveryToken).symbol} · {getNetworkDisplay(selectedRecoveryToken)}</p>
                             <p className="mt-2 text-sm leading-6 text-gray-400">Wallet {shortAddr(finderAddress)}. Connect this wallet in LI.FI below.</p>
                           </div>
-                          <button onClick={chooseAnotherAsset} disabled={executionBusy} className="min-h-12 w-full shrink-0 rounded-xl border border-purple-300/40 bg-purple-500/10 px-4 text-sm font-semibold text-purple-100 hover:bg-purple-500/20 disabled:opacity-40 sm:w-auto">Choose another asset</button>
+                          <button onClick={chooseAnotherAsset} disabled={executionBusy || refreshingFinderAssets} className="min-h-12 w-full shrink-0 rounded-xl border border-purple-300/40 bg-purple-500/10 px-4 text-sm font-semibold text-purple-100 hover:bg-purple-500/20 disabled:opacity-40 sm:w-auto">{refreshingFinderAssets ? 'Refreshing balances…' : 'Choose another asset'}</button>
                         </div>
                         {isNativeTokenAddress(getTokenAddress(selectedRecoveryToken)) && (
                           <p className="mt-3 rounded-xl border border-purple-300/20 p-4 text-sm text-purple-100">This is already the currency used to pay network fees. Choose a different token or network to receive below.</p>
@@ -960,7 +984,7 @@ export default function AppPortal() {
                           <div role="status" aria-live="polite" className={`my-4 rounded-2xl border p-4 text-sm leading-6 ${recoveryState.status === 'completed' ? 'border-emerald-400/30 bg-emerald-500/10 text-emerald-100' : ['failed', 'cancelled', 'no-route'].includes(recoveryState.status) ? 'border-amber-400/40 bg-amber-500/10 text-amber-100' : 'border-purple-400/30 bg-purple-500/10 text-purple-100'}`}>
                             {recoveryState.label && <p className="mb-1 text-base font-bold">{recoveryState.label}</p>}
                             {recoveryState.message}
-                            {recoveryState.status === 'completed' && <div className="mt-3 flex flex-wrap items-center gap-3"><button onClick={chooseAnotherAsset} className="min-h-11 rounded-lg bg-purple-600 px-4 text-sm text-white">Check another asset</button><button onClick={shareRecovery} className="min-h-11 rounded-lg border border-white/20 px-4 text-sm">Share recovery</button><span>{shareMessage}</span></div>}
+                            {recoveryState.status === 'completed' && <div className="mt-3 flex flex-wrap items-center gap-3"><button onClick={chooseAnotherAsset} disabled={refreshingFinderAssets} className="min-h-11 rounded-lg bg-purple-600 px-4 text-sm text-white disabled:opacity-50">{refreshingFinderAssets ? 'Refreshing balances…' : 'Check another asset'}</button><button onClick={shareRecovery} className="min-h-11 rounded-lg border border-white/20 px-4 text-sm">Share recovery</button><span>{shareMessage}</span></div>}
                           </div>
                         )}
                         <div className="lifi-widget-shell mt-3 min-w-0 rounded-[24px] border border-white/10 bg-[#09090b]">
