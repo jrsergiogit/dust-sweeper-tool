@@ -331,6 +331,7 @@ export default function AppPortal() {
   const [portfolioResultAddress, setPortfolioResultAddress] = useState('');
   const [portfolioError, setPortfolioError] = useState('');
   const [selectedRecoveryToken, setSelectedRecoveryToken] = useState<any | null>(null);
+  const [isWalletBrowser, setIsWalletBrowser] = useState(false);
   const recoverySectionRef = useRef<HTMLDivElement | null>(null);
   const [routePreflight, setRoutePreflight] = useState<PreflightState>({ status: 'idle' });
   const [recoveryWidgetNonce, setRecoveryWidgetNonce] = useState(0);
@@ -360,6 +361,19 @@ export default function AppPortal() {
     price: assetFilter, search: assetSearch, network: assetNetwork,
   }, getNetworkDisplay, getTokenDisplay), [foundTokens, assetFilter, assetSearch, assetNetwork]);
   const finderNetworks = useMemo(() => [...new Set(foundTokens.map(getNetworkDisplay))].sort(), [foundTokens]);
+
+  // Detect wallet in-app browsers so mobile users see launch buttons in Chrome,
+  // but see the LI.FI widget after the same site opens inside their wallet.
+  useEffect(() => {
+    const userAgent = navigator.userAgent || '';
+    const provider = (window as any).ethereum;
+    const providers = Array.isArray(provider?.providers) ? provider.providers : [provider];
+    const walletUserAgent = /MetaMask|TrustWallet|CoinbaseWallet|Coinbase Wallet|Rainbow|UniswapWallet|OKX/i.test(userAgent);
+    const injectedWallet = providers.some((item: any) => Boolean(
+      item?.isMetaMask || item?.isTrust || item?.isCoinbaseWallet || item?.isRainbow || item?.isOkxWallet
+    ));
+    setIsWalletBrowser(walletUserAgent || injectedWallet);
+  }, []);
 
   // Check security indicators per contract independently of token pricing.
   useEffect(() => {
@@ -988,7 +1002,7 @@ export default function AppPortal() {
                             {recoveryState.status === 'completed' && <div className="mt-3 flex flex-wrap items-center gap-3"><button onClick={() => { void chooseAnotherAsset(); }} disabled={refreshingFinderBalances} className="min-h-11 rounded-lg bg-purple-600 px-4 text-sm text-white disabled:opacity-40">{refreshingFinderBalances ? "Refreshing…" : "Check another asset"}</button><button onClick={shareRecovery} className="min-h-11 rounded-lg border border-white/20 px-4 text-sm">Share recovery</button><span>{shareMessage}</span></div>}
                           </div>
                         )}
-                        <section className="mobile-wallet-handoff my-3 rounded-2xl border border-violet-400/25 bg-[#100d1c] p-4 sm:hidden" aria-label="Continue in wallet">
+                        {!isWalletBrowser && <section className="mobile-wallet-handoff my-3 rounded-2xl border border-violet-400/25 bg-[#100d1c] p-4 sm:hidden" aria-label="Continue in wallet">
                           <h3 className="text-base font-semibold text-white">Finish in your wallet</h3>
                           <p className="mt-1 text-sm leading-5 text-gray-300">On iPhone, switching networks can return you to Chrome without opening the approval screen. Open Dust Sweeper in your wallet first, then choose this token and continue there.</p>
                           <div className="mt-3 grid grid-cols-1 gap-2">
@@ -997,8 +1011,8 @@ export default function AppPortal() {
                             <a href="https://go.cb-w.com/dapp?cb_url=https%3A%2F%2Fdustsweepertool.com" target="_blank" rel="noopener noreferrer" className="flex min-h-12 items-center justify-center rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm font-semibold text-white">Open in Coinbase Wallet</a>
                           </div>
                           <p className="mt-3 text-xs leading-4 text-gray-500">Other wallet? Open its built-in browser and visit dustsweepertool.com. Only approve transactions you recognize.</p>
-                        </section>
-                        <div className="lifi-widget-shell mt-3 hidden min-w-0 rounded-[24px] border border-white/10 bg-[#09090b] sm:block">
+                        </section>}
+                        <div className={isWalletBrowser ? "lifi-widget-shell mt-3 min-w-0 rounded-[24px] border border-white/10 bg-[#09090b]" : "lifi-widget-shell mt-3 hidden min-w-0 rounded-[24px] border border-white/10 bg-[#09090b] sm:block"}>
                           <LiFiWidget key={`${getTokenChainId(selectedRecoveryToken)}-${getTokenAddress(selectedRecoveryToken)}-${recoveryWidgetNonce}`} integrator="DustSweeper" config={finderConfig as any} />
                         </div>
                         {!widgetEdited && ['incomplete', 'wrong-network', 'simulation-failed', 'insufficient-gas', 'no-route', 'error'].includes(routePreflight.status) && (
