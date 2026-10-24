@@ -30,7 +30,7 @@ export default function FinderIntro({ address, busy, error, onAddressChange, onS
           </div>
         </div>
         <div className="rounded-2xl border border-white/10 bg-[#10121d]/95 p-4 shadow-xl sm:p-6" aria-busy={busy}>
-          <h2 className="text-xl font-bold text-white">Start with a free scan</h2>
+          <h2 className="text-xl font-bold text-white">Scan without connecting your wallet</h2>
           <form className="mt-4" onSubmit={event => { event.preventDefault(); if (!busy) onScan(); }}>
             <label htmlFor="finder-address" className="mb-2 block text-[15px] font-medium text-gray-200">Public wallet address</label>
             <input id="finder-address" name="wallet-address" type="text" value={address}
