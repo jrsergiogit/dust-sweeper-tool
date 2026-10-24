@@ -16,7 +16,7 @@ export async function generateMetadata({ params }: { params: Promise<{ chain: st
   const url = `${SITE_URL}/dust-recovery/${chain}`;
   const title = `Recover ${name} Dust: Find Small Balances & Compare Routes`;
   const description = scanned(chain)
-    ? `Find small and forgotten ${name} token balances from your public address, check the cost of moving them and compare swap or bridge routes before you sign.`
+    ? `Find small and forgotten ${name} token balances from your public address and compare swap or bridge routes before you sign.`
     : `How to evaluate small ${name} balances, what to check before moving them and which tools fit this network.`;
   return {
     title, description,
